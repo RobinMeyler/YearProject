@@ -48,6 +48,28 @@ VkCommandBuffer commandBuffer;
 VkDeviceMemory memory;
 ///
 
+struct Node 
+{
+    float costToGoal;
+    float totalCostFromStart;
+    float totalCostAccumlative;
+    bool marked;		// Has been reached yet or not
+    bool passable;
+    int ID;
+    int previousID;		// Previous id for finidng path
+    int arcIDs[4];		// 4 neighbours in grid by ID
+};
+
+
+struct NodeData 
+{
+    int start;		// Start ID
+    int goal;		// Goal ID
+    Node nodes[20];
+};
+
+std::vector<NodeData> nodesForShader;
+
 bool checkValidationLayerSupport() {
     uint32_t layerCount;
     vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
@@ -337,7 +359,8 @@ uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) {
     vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
 
     for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
-        if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
+        if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) 
+        {
             return i;
         }
     }

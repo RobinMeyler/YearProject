@@ -1,10 +1,112 @@
 #version 450
 
-layout(std430, set=0, binding=0) buffer inA { float a[]; };
-layout(std430, set=0, binding=1) buffer inB { float b[]; };
-layout(std430, set=0, binding=2) buffer outR { float result[]; };
+struct Node{
+	float costToGoal;
+	float totalCostFromStart;
+	float totalCostAccumlative;
+	bool marked;		// Has been reached yet or not
+	bool passable;
+	int ID;
+	int previousID;		// Previous id for finidng path
+	int arcIDs[4];		// 4 neighbours in grid by ID
+	//vec2 position;
+};
 
-void main(){
-	const uint i = gl_GlobalInvocationID.x;
-	result[i] = a[i] + b[i];
+struct NodeData{
+	int start;		// Start ID
+	int goal;		// Goal ID
+	Node nodes[20];
+};
+
+layout (local_size_x = 256) in;
+
+layout(std430, set=0, binding=0) buffer inA { NodeData nd[]; };
+layout(std430, set=0, binding=1) buffer inB { int oop[]; };
+layout(std430, set=0, binding=2) buffer outR { int paths[][20]; };
+
+//layout (binding = 3) uniform Node nodes[20];		// All grid nodes
+
+int pq[10];
+
+int queueSize()
+{
+	int size = 0;
+	for(int s = 0; s < 10; s++)
+	{
+		if(pq[s] != -1)
+		{
+			size++;
+		}	
+	}
+	return size;
+}
+
+
+void main(){ 
+	// Find which invocation this is
+	const uint index = gl_GlobalInvocationID.x;
+	int queuePosition = 0;
+	
+	// Set all in the queue to -1 for reference
+	pq[0] = -1; pq[1] = -1; pq[2] = -1;
+	pq[3] = -1; pq[4] = -1; pq[5] = -1;
+	pq[6] = -1; pq[7] = -1; pq[8] = -1;
+
+	// Set up the start node for the queue
+	pq[0] = nd[index].start;
+	nd[index].nodes[pq[0]].marked = true;
+	nd[index].nodes[pq[0]].data.totalCostAccumlative = nd[index].nodes[pq[0]].data.totalCostFromStart + nd[index].nodes[pq[0]].data.costToGoal;
+	
+	// A* with queuing
+	while(queueSize() > 0)
+	{
+		// Loop each of the arcs
+		for(int t = 0; t < 4; t++)
+		{
+			// Find Arc's ID of the top node in queue 1->4
+			int arc = nd[index].nodes[pq[0]].arcIDs[t];
+
+			// If it is not passable, continue;
+			if(nd[index].nodes[arc].passable == false)
+			{
+				continue;
+			}
+
+			// Get distance of arc
+			float childDistance = nd[index].nodes[arc].data.m_costToGoal + nd[index].nodes[pq[0]].m_data.m_costFromStart + 1;
+
+			// If the arc is worth checking:
+			// Update its totalCost, cost from start and previous ID alone this chain
+			if(childDistance < nodes[arc].data.totalCostAccumlative)
+			{
+				nd[index].nodes[arc].data.totalCostAccumlative = childDistance;
+				nd[index].nodes[arc].data.totalCostFromStart = nd[index].nodes[pq[0]].data.totalCostFromStart;
+				nd[index].nodes[arc].previousID = pq[0];
+			}
+
+			if(nd[index].nodes[arc].marked == false)
+			{
+				// Push nodes[arc] to pq (Action)
+				nd[index].nodes[arc].marked = true;
+			}
+		}
+		// remove pq[0] from pq	(Action)
+		// assign new pq[0] from pq[1] (Action)
+	}
+
+	// Make path for each invocation
+	// Setting path ID or -1 if it doesn't exist
+	int loop = nd[index].goal;
+	for(int i = t; t < 20; t++)
+	{
+		if(loop != -1)
+		{
+			// Updates the corrosponding inovation
+			paths[index][t] = nd[index].nodes[loop].data.ID;
+		}	
+		loop = nd[index].nodes[loop].previousID;	
+	}	
+
+	// If all went well this specific pathfind should have filled the path of ints back for the CPU to assign to the agent
+	// This program should execute 1 - > Many A* pathfinding at the same time at the speed of the slowest single execution
 }
