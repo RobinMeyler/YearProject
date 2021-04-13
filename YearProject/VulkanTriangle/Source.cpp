@@ -9,6 +9,7 @@
 #include <iostream>
 #include <fstream>
 #include <random>
+#include <array>
 
 const std::vector<const char*> validationLayers = {
         "VK_LAYER_KHRONOS_validation"
@@ -53,11 +54,13 @@ struct Node
     float costToGoal;
     float totalCostFromStart;
     float totalCostAccumlative;
-    bool marked;		// Has been reached yet or not
-    bool passable;
+    //int padding;        // This is for memeory allignment
+    int marked;		// Has been reached yet or not
+    int passable;
     int ID;
     int previousID;		// Previous id for finidng path
     int arcIDs[4];		// 4 neighbours in grid by ID
+  
 };
 
 
@@ -339,7 +342,7 @@ void createComputePipeline(const std::string& shaderName) {
 void createBuffers(std::vector<VkBuffer>& buffers, uint32_t num_buffers, uint64_t buffer_size) {
     VkBufferCreateInfo bufferCreateInfo{};
     bufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-    bufferCreateInfo.size = sizeof(float) * buffer_size;
+    bufferCreateInfo.size = sizeof(NodeData) * buffer_size;
     bufferCreateInfo.usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
     bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
     bufferCreateInfo.queueFamilyIndexCount = 1;
@@ -488,15 +491,15 @@ int main() {
     pickPhysicalDevice();
     createLogicalDeviceAndQueue();
 
-    uint32_t bindingsCount = 3;
+    uint32_t bindingsCount = 2;
     createBindingsAndPipelineLayout(bindingsCount);
 
-    createComputePipeline("shaders/vector.spv");
+    createComputePipeline("shaders/astar.spv");
 
-    const uint32_t elements = 1000000;
+    const uint32_t elements = 1;
     std::vector<VkBuffer> buffers;
 
-    createBuffers(buffers, 3, elements);
+    createBuffers(buffers, 1, elements);
     allocateBufferMemoryAndBind(buffers);
     allocateDescriptorSets(buffers);
 
@@ -510,32 +513,58 @@ int main() {
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, pipeline);
 
     vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, pipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
-    vkCmdDispatch(commandBuffer, elements, 1, 1);
+    vkCmdDispatch(commandBuffer, 1, 1, 1);
 
     if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
         throw std::runtime_error("failed to end command buffer");
     }
 
-    float* data = nullptr;
+    int paths[1][20];
+    NodeData* data = nullptr;
     if (vkMapMemory(device, memory, 0, VK_WHOLE_SIZE, 0, reinterpret_cast<void**>(&data)) != VK_SUCCESS) {
         throw std::runtime_error("failed to map device memory");
     }
 
-    float* d_a = data;
+   
 
-    float* d_b = data + elements;
+    //float* d_b = data + elements;
 
-    float* d_c = data + 2 * elements;
+    int* d_b = &paths[0][0];
 
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_real_distribution<> dis(0.0, 10.0);
 
-    for (uint32_t i = 0; i < elements; i++) {
+    Node nodes[20];
+    for (int i = 0; i < 20; i++)
+    {
+        nodes[i].costToGoal = 1;
+        nodes[i].totalCostFromStart = 2;
+        nodes[i].totalCostAccumlative = 100;
+        nodes[i].marked = 0;
+        nodes[i].passable = 1;
+        nodes[i].ID = i;
+        nodes[i].previousID = -1;
+        for (int j = 0; j < 4; j++)
+        {
+            nodes[i].arcIDs[j] = i + (j+1);
+        }
+    }
+    NodeData* data1;
+    NodeData* dataR = nullptr;
+    data1 = data;
+  
+    data1->start = 3;
+    data1->goal = 5;
+    std::copy(std::begin(nodes), std::end(nodes), std::begin(data1->nodes));
+
+    
+    
+    /*for (uint32_t i = 0; i < elements; i++) {
         d_a[i] = 5;
         d_b[i] = 6;
         d_c[i] = 0.0;
-    }
+    }*/
 
     vkUnmapMemory(device, memory);
 
@@ -552,11 +581,10 @@ int main() {
         throw std::runtime_error("failed to map device memory");
     }
 
-    d_a = data;
-    auto result = data + elements;
-    d_b = data + elements;
+    dataR = data;
+    /*auto result = data + elements;
+    d_b = paths;
 
-    d_c = data + 2 * elements;
 
     bool is_wrong = false;
 
@@ -565,16 +593,16 @@ int main() {
             is_wrong = true;
             break;
         }
-    }
+    }*/
 
     vkUnmapMemory(device, memory);
 
-    if (is_wrong) {
-        std::cout << "wrong result" << std::endl;
-    }
-    else {
-        std::cout << "good result" << std::endl;
-    }
+    //if (is_wrong) {
+    //    std::cout << "wrong result" << std::endl;
+    //}
+    //else {
+    //    std::cout << "good result" << std::endl;
+    //}
 
     vkDestroyCommandPool(device, commandPool, nullptr);
     vkFreeMemory(device, memory, nullptr);
@@ -593,5 +621,6 @@ int main() {
 
     vkDestroyInstance(instance, nullptr);
 
+    system("PAUSE");
     return 0;
 }
