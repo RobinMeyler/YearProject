@@ -1,6 +1,9 @@
-//
-// Created by Dima Zhylko on 08/05/2020.
-//
+
+#define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEFAULT_ALIGNED_GENTYPES
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/glm.hpp>
+
 
 #include <vulkan/vulkan.h>
 
@@ -10,6 +13,9 @@
 #include <fstream>
 #include <random>
 #include <array>
+
+#include <string>
+#include <map>
 
 const std::vector<const char*> validationLayers = {
         "VK_LAYER_KHRONOS_validation"
@@ -54,13 +60,13 @@ struct Node
     float costToGoal;
     float totalCostFromStart;
     float totalCostAccumlative;
-    //int padding;        // This is for memeory allignment
     int marked;		// Has been reached yet or not
     int passable;
     int ID;
     int previousID;		// Previous id for finidng path
     int arcIDs[4];		// 4 neighbours in grid by ID
-  
+    glm::vec2 position;
+    int padding;
 };
 
 
@@ -496,10 +502,10 @@ int main() {
 
     createComputePipeline("shaders/astar.spv");
 
-    const uint32_t elements = 1;
+    const uint32_t elements = 2;
     std::vector<VkBuffer> buffers;
 
-    createBuffers(buffers, 1, elements);
+    createBuffers(buffers, 2, elements);
     allocateBufferMemoryAndBind(buffers);
     allocateDescriptorSets(buffers);
 
@@ -531,31 +537,94 @@ int main() {
 
     int* d_b = &paths[0][0];
 
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_real_distribution<> dis(0.0, 10.0);
+    //std::random_device rd;
+    //std::mt19937 gen(rd());
+    //std::uniform_real_distribution<> dis(0.0, 10.0);
+
+    NodeData nodeData;
+ 
+    int nodeIndex = 0;
+    std::ifstream myfile;
 
     Node nodes[20];
+
+    int xpos = 0;
+    int ypos = 0;
+
     for (int i = 0; i < 20; i++)
     {
         nodes[i].costToGoal = 1;
-        nodes[i].totalCostFromStart = 2;
+        nodes[i].totalCostFromStart = 0;
         nodes[i].totalCostAccumlative = 100;
         nodes[i].marked = 0;
         nodes[i].passable = 1;
         nodes[i].ID = i;
         nodes[i].previousID = -1;
-        for (int j = 0; j < 4; j++)
+       
+        // Left
+        if (i - 1 >= 0 && ((i != 5) || (i != 10) || (i != 15)))
         {
-            nodes[i].arcIDs[j] = i + (j+1);
+            nodes[i].arcIDs[0] = (i - 1);
         }
+        else
+        {
+            nodes[i].arcIDs[0] = -1;
+        }
+        
+        // Right
+        if (i + 1 < 20 && ((i != 4) || (i != 9) || (i != 14)))
+        {
+            nodes[i].arcIDs[1] = (i + 1);
+        }
+        else
+        {
+            nodes[i].arcIDs[1] = -1;
+        }
+        
+        // Up
+        if (i - 5 >= 0)
+        {
+            nodes[i].arcIDs[2] = (i - 5);
+        }
+        else
+        {
+            nodes[i].arcIDs[2] = -1;
+        }
+
+        // Down
+        if (i + 5 < 20)
+        {
+            nodes[i].arcIDs[3] = (i + 5);
+        }
+        else
+        {
+            nodes[i].arcIDs[3] = -1;
+        }
+
+        nodes[i].position.x = xpos;
+        nodes[i].position.y = ypos;
+        xpos++;
+
+        if (i % 5 == 4)
+        {
+            ypos++;
+            xpos = 0;
+        }
+
     }
+  
+    // 18 is test goal
+    for (int i = 0; i < 20; i++)
+    {
+        nodes[i].costToGoal = abs(nodes[18].position.x - nodes[i].position.x) + abs(nodes[18].position.y - nodes[i].position.y);
+    }
+
     NodeData* data1;
     NodeData* dataR = nullptr;
     data1 = data;
   
-    data1->start = 3;
-    data1->goal = 5;
+    data1->start = 0;
+    data1->goal = 18;
     std::copy(std::begin(nodes), std::end(nodes), std::begin(data1->nodes));
 
     
@@ -582,27 +651,9 @@ int main() {
     }
 
     dataR = data;
-    /*auto result = data + elements;
-    d_b = paths;
-
-
-    bool is_wrong = false;
-
-    for (uint32_t i = 0; i < elements; i++) {
-        if (d_c[i] != d_a[i] + d_b[i]) {
-            is_wrong = true;
-            break;
-        }
-    }*/
 
     vkUnmapMemory(device, memory);
 
-    //if (is_wrong) {
-    //    std::cout << "wrong result" << std::endl;
-    //}
-    //else {
-    //    std::cout << "good result" << std::endl;
-    //}
 
     vkDestroyCommandPool(device, commandPool, nullptr);
     vkFreeMemory(device, memory, nullptr);
