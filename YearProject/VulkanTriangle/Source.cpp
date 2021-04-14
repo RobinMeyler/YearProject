@@ -1,4 +1,8 @@
 
+// Author: Robin Meyler
+// Date: 2020/2021
+
+
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEFAULT_ALIGNED_GENTYPES
 #include <glm/gtc/matrix_transform.hpp>
@@ -66,7 +70,7 @@ struct Node
     int previousID;		// Previous id for finidng path
     int arcIDs[4];		// 4 neighbours in grid by ID
     glm::vec2 position;
-    int padding;
+    int padding;        // Aligning the memoryw with the base/ largest data -> Vec2
 };
 
 

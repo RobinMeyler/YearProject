@@ -1,3 +1,7 @@
+// Author: Robin Meyler
+// Date: 2020/2021
+
+
 //#define GLFW_INCLUDE_VULKAN		// This includes Vulkan
 //#include <GLFW/glfw3.h>
 //
