@@ -10,7 +10,7 @@ struct Node{
 	int marked;		// Has been reached yet or not
 	int passable;
 	int ID;
-	int previousID;		// Previous id for finidng path
+	int previousID;		// Previous id for finding path
 	int arcIDs[4];		// 4 neighbours in grid by ID
 	vec2 position;
 };
@@ -22,12 +22,11 @@ struct NodeData{
 };
 
 layout (local_size_x = 2) in;
-
 layout(std430, set=0, binding=0) buffer inA { NodeData nd[]; };
-//layout(std430, set=0, binding=1) buffer inB { int oop[]; };
 layout(std430, set=0, binding=1) buffer outR { int paths[][20]; };
 
-//layout (binding = 3) uniform Node nodes[20];		// All grid nodes
+// layout(std430, set=0, binding=1) buffer inB { int oop[]; };
+// layout (binding = 3) uniform Node nodes[20];					// All grid nodes
 
 int pq[20];
 
@@ -124,7 +123,7 @@ void main(){
 			if(childDistance < nd[index].nodes[arc].totalCostAccumlative)
 			{
 				nd[index].nodes[arc].totalCostAccumlative = childDistance;
-				nd[index].nodes[arc].totalCostFromStart = nd[index].nodes[pq[0]].totalCostFromStart;
+				nd[index].nodes[arc].totalCostFromStart = nd[index].nodes[pq[0]].totalCostFromStart + 1;
 				nd[index].nodes[arc].previousID = pq[0];
 			}
 
@@ -161,7 +160,7 @@ void main(){
 		}
 		
 	}	
-	nd[index].nodes[0].costToGoal = count;
+	nd[index].nodes[0].totalCostFromStart = count;
 	// If all went well this specific pathfind should have filled the path of ints back for the CPU to assign to the agent
 	// This program should execute 1 - > Many A* pathfinding at the same time at the speed of the slowest single execution
 }
