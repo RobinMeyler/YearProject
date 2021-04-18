@@ -24,7 +24,7 @@ const std::vector<const char*> validationLayers =
 	"VK_LAYER_KHRONOS_validation"
 };
 
- 
+
 // This removes extra checks and work when we are in release and we have removed all bugs(as if)
 #ifdef NDEBUG                               // Part of STL, if Debug, else
 const bool enableValidationLayers = false;
@@ -35,15 +35,16 @@ const bool enableValidationLayers = true;
 
 class HelloTriangleApplication {            // Seperated into a better structure later
 public:
-	std::vector<Cube> m_gameCubes;
+	std::vector<Cube*> m_gameCubes;
+	Cube* m_start;
+	Cube* m_goal;
 	void run() {
 		initWindow();                       // Setup GLFW window and settings for Vulkan
 
 		setupCubeMap();
-		m_renderer.creatBufferObjects(5);
 		m_renderer.addVBOs(&m_gameCubes);
 		m_renderer.setupVulkan(window);
-	
+
 		mainLoop();                         // Loop
 		cleanup();                          // Clearing memory off of the heap
 	}
@@ -66,6 +67,9 @@ private:
 	{
 		while (!glfwWindowShouldClose(window)) {
 			glfwPollEvents();
+
+			m_start->updatePos(0.001f);
+
 			m_renderer.draw();
 		}
 	}
@@ -75,21 +79,44 @@ private:
 		m_renderer.cleanUp();
 		glfwDestroyWindow(window);
 		glfwTerminate();
-		glfwTerminate();
 	}
 
 	void setupCubeMap()
 	{
-		Cube cubeOne(0);
-		Cube cubeTwo(-4);
-		Cube cubeThree(4);
-		Cube cube4(-2);
-		Cube cube5(2);
-		m_gameCubes.push_back(cubeOne);
-		m_gameCubes.push_back(cubeTwo);
-		m_gameCubes.push_back(cubeThree);
-		m_gameCubes.push_back(cube4);
-		m_gameCubes.push_back(cube5);
+		// Bottome layer
+		for (int i = -10; i < 10; i = i+2)
+		{
+			for(int j = -10; j < 10; j= j+2)
+			{
+				Cube* cube = new Cube( i, j, 0.0f );
+				cube->updateColor(glm::vec3(0.5f, 0.5f, 0.5f));
+				m_gameCubes.push_back(cube);
+			}	
+		}
+	
+
+		// Top layer
+		for (int i = -10; i < 10; i = i + 2)
+		{
+			for (int j = -10; j < 10; j = j + 2)
+			{
+				if (j == -10 || j == 8 || i == -10 || i == 8 || (i == 0 && j == 0) || (i == 0 && j == 2))
+				{
+					Cube* cube = new Cube(i, j, 2.0f);
+					//cube->updateColor(glm::vec3(1.0f, 1.0f, 1.0f));
+					m_gameCubes.push_back(cube);
+				}
+			}
+		}
+		m_start = new Cube(-6, -6, 2.0f);
+		m_start->updateColor(glm::vec3(0.0f, 0.0f, 1.0f));
+		m_gameCubes.push_back(m_start);
+
+		m_goal = new Cube(6, 6, 2.0f);
+		m_goal->updateColor(glm::vec3(1.0f, 0.0f, 0.0f));
+		m_gameCubes.push_back(m_goal);
+
+		m_renderer.creatBufferObjects(m_gameCubes.size());
 	}
 };
 

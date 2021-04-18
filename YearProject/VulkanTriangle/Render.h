@@ -89,7 +89,7 @@ public:
 	void draw();
 	void cleanUp();
 
-	void addVBOs(std::vector<Cube> *t_cubes);
+	void addVBOs(std::vector<Cube*> *t_cubes);
 	bool isDeviceSuitable(VkPhysicalDevice device);
 	bool checkDeviceExtensionSupport(VkPhysicalDevice device);
 	QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
@@ -106,64 +106,48 @@ public:
 	void updateUniformBuffer(uint32_t currentImage);
 	void recreateSwapchain();
 	void cleanupSwapChain();
+	void updateBufferMemory(Cube& t_cube, VkBuffer& t_vertexbuffer, VkDeviceMemory& t_vertexbuffermemory);
 
-	std::vector<Cube>* cubes;
+	std::vector<Cube*>* cubes;
 	bool framebufferResized = false;
 private:
 
 	GLFWwindow* window;                     // Main window
-
 	VkInstance instance;                    // Instance of Vulkan, needed for everything.
-
 	VkSurfaceKHR surface;
-
 	VkSwapchainKHR swapChain;				// Controls the images to be set for viewing
-
 	std::vector<VkImage> swapChainImages;	// The images
 	std::vector<VkImageView> swapChainImageViews;
-
 	VkFormat swapChainImageFormat;			// Format settings
 	VkExtent2D swapChainExtent;				// Extent settings
-
 	VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;       // Hold information about the GPU device, set to null
-
 	VkDevice device;						// Logical device
-
 	VkQueue graphicsQueue;
 	VkQueue presentQueue;
-
 	VkRenderPass renderPass;
 	VkPipelineLayout pipelineLayout;
 	VkPipeline graphicsPipeline;
-
 	std::vector<VkFramebuffer> swapChainFramebuffers;
-
 	VkCommandPool commandPool;
 	std::vector<VkCommandBuffer> commandBuffers;
-
 	std::vector<VkSemaphore> imageAvailableSemaphores;
 	std::vector<VkSemaphore> renderFinishedSemaphores;
 	std::vector<VkFence> imagesInFlight;
 	std::vector<VkFence> inFlightFences;
 	size_t currentFrame = 0;
-
 	std::vector<VkBuffer> vertexBuffers;
 	std::vector<VkDeviceMemory> vertexBufferMemorys;
 	std::vector<VkBuffer> indexBuffers;
 	std::vector<VkDeviceMemory> indexBufferMemorys;
-
-	VkBuffer vertexBuffer;
-	VkDeviceMemory vertexBufferMemory;
-	VkBuffer indexBuffer;
-	VkDeviceMemory indexBufferMemory;
-
-	VkBuffer vertexBuffer2;
-	VkDeviceMemory vertexBufferMemory2;
-	VkBuffer indexBuffer2;
-	VkDeviceMemory indexBufferMemory2;
-
+	//VkBuffer vertexBuffer;
+	//VkDeviceMemory vertexBufferMemory;
+	//VkBuffer indexBuffer;
+	//VkDeviceMemory indexBufferMemory;
+	//VkBuffer vertexBuffer2;
+	//VkDeviceMemory vertexBufferMemory2;
+	//VkBuffer indexBuffer2;
+	//VkDeviceMemory indexBufferMemory2;
 	VkDescriptorSetLayout descriptorSetLayout;
-
 	std::vector<VkBuffer> uniformBuffers;
 	std::vector<VkDeviceMemory> uniformBuffersMemory;
 

@@ -189,7 +189,6 @@ void Render::createSwapChain()
 	vkGetSwapchainImagesKHR(device, swapChain, &imageCount, swapChainImages.data());
 }
 
-
 void Render::createImageViews()
 {
 	swapChainImageViews.resize(swapChainImages.size());
@@ -352,7 +351,7 @@ void Render::createVulkanGraphicsPipeline()
 	rasterizer.depthClampEnable = VK_FALSE;
 	rasterizer.rasterizerDiscardEnable = VK_FALSE;
 	rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
-	rasterizer.lineWidth = 10.0f;
+	rasterizer.lineWidth = 0.0f;
 	rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
 	rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 	rasterizer.depthBiasEnable = VK_FALSE;
@@ -497,13 +496,10 @@ void Render::creatBufferObjects(int t_count)
 	}
 }
 
-
-void Render::addVBOs(std::vector<Cube>* t_cubes)
+void Render::addVBOs(std::vector<Cube*>* t_cubes)
 {
 	cubes = t_cubes;
 }
-
-
 
 void Render::createVertexBuffer(Cube& t_cube, VkBuffer& t_vertexbuffer, VkDeviceMemory& t_vertexbuffermemory)
 {
@@ -523,6 +519,26 @@ void Render::createVertexBuffer(Cube& t_cube, VkBuffer& t_vertexbuffer, VkDevice
 
 	vkDestroyBuffer(device, stagingBuffer, nullptr);
 	vkFreeMemory(device, stagingBufferMemory, nullptr);
+}
+
+void Render::updateBufferMemory(Cube& t_cube, VkBuffer& t_vertexbuffer, VkDeviceMemory& t_vertexbuffermemory)
+{
+	VkDeviceSize bufferSize = sizeof(t_cube.vertices[0]) * t_cube.vertices.size();
+
+	VkBuffer stagingBuffer;
+	VkDeviceMemory stagingBufferMemory;
+	createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+
+	void* data;
+	vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
+	memcpy(data, t_cube.vertices.data(), (size_t)bufferSize);
+	vkUnmapMemory(device, stagingBufferMemory);
+
+	copyBuffer(stagingBuffer, t_vertexbuffer, bufferSize);
+
+	vkDestroyBuffer(device, stagingBuffer, nullptr);
+	vkFreeMemory(device, stagingBufferMemory, nullptr);
+
 }
 
 void Render::createIndexBuffer(Cube& t_cube, VkBuffer& t_vertexbuffer, VkDeviceMemory& t_vertexbuffermemory)
@@ -659,7 +675,7 @@ void Render::createCommandBuffers()
 			vkCmdBindVertexBuffers(commandBuffers[i], 0, 1, vertexBuffersObs, offsets);
 			vkCmdBindIndexBuffer(commandBuffers[i], indexBuffers.at(j), 0, VK_INDEX_TYPE_UINT32);
 			vkCmdBindDescriptorSets(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[i], 0, nullptr);
-			vkCmdDrawIndexed(commandBuffers[i], static_cast<uint32_t>((*cubes)[j].indices.size()), 1, 0, 0, 0);
+			vkCmdDrawIndexed(commandBuffers[i], static_cast<uint32_t>((*cubes)[j]->indices.size()), 1, 0, 0, 0);
 		}
 
 		vkCmdEndRenderPass(commandBuffers[i]);
@@ -711,8 +727,8 @@ void Render::setupVulkan(GLFWwindow* t_window)
 
 	for (int i = 0; i < cubes->size(); i++)
 	{
-		createVertexBuffer(cubes->at(i), vertexBuffers.at(i), vertexBufferMemorys.at(i));
-		createIndexBuffer(cubes->at(i), indexBuffers.at(i), indexBufferMemorys.at(i));
+		createVertexBuffer(*cubes->at(i), vertexBuffers.at(i), vertexBufferMemorys.at(i));
+		createIndexBuffer(*cubes->at(i), indexBuffers.at(i), indexBufferMemorys.at(i));
 	}
 	
 	createUniformBuffers();
@@ -742,6 +758,9 @@ void Render::draw()
 		vkWaitForFences(device, 1, &imagesInFlight[imageIndex], VK_TRUE, UINT64_MAX);
 	}
 	imagesInFlight[imageIndex] = inFlightFences[currentFrame];
+
+	// Update Start Block
+	updateBufferMemory(*cubes->at(cubes->size() - 2), vertexBuffers.at(cubes->size() - 2), vertexBufferMemorys.at(cubes->size() - 2));
 
 	updateUniformBuffer(imageIndex);
 
@@ -799,12 +818,13 @@ void Render::cleanUp()
 
 	vkDestroyDescriptorSetLayout(device, descriptorSetLayout, nullptr);
 
-	vkDestroyBuffer(device, indexBuffer, nullptr);
-	vkFreeMemory(device, indexBufferMemory, nullptr);
-
-	vkDestroyBuffer(device, vertexBuffer, nullptr);
-	vkFreeMemory(device, vertexBufferMemory, nullptr);
-
+	for (int i = 0; i < vertexBufferMemorys.size(); i++)
+	{
+		vkDestroyBuffer(device, indexBuffers.at(i), nullptr);
+		vkFreeMemory(device, indexBufferMemorys.at(i), nullptr);
+		vkDestroyBuffer(device, vertexBuffers.at(i), nullptr);
+		vkFreeMemory(device, vertexBufferMemorys.at(i), nullptr);
+	}
 
 	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
 		vkDestroySemaphore(device, renderFinishedSemaphores[i], nullptr);
@@ -829,8 +849,8 @@ void Render::updateUniformBuffer(uint32_t currentImage)
 	float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
 
 	UniformBufferObject ubo{};
-	ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-	ubo.view = glm::lookAt(glm::vec3(5.0f, 0.0f, 10.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	ubo.view = glm::lookAt(glm::vec3(0.0f, -20.0f, 30.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 	ubo.proj = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 100.0f);
 	ubo.proj[1][1] *= -1;
 

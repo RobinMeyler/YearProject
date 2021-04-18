@@ -1,5 +1,8 @@
 #pragma once
 
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/glm.hpp>
+
 #include <vector>
 #include "Vertex.h"
 
@@ -7,9 +10,10 @@ class Cube
 {
 public:
 	Cube();
-
-	Cube(float t_xDis);
-
+	float x, y, z;
+	Cube(float t_xDis, float t_yDis, float t_zDist);
+	void updateColor(glm::vec3 t_color);
+	void updatePos(float t_move);
 	std::vector<Vertex3D> vertices = {
 
 		// Front Face
