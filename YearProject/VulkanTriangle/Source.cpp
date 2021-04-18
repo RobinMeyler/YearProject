@@ -517,7 +517,7 @@ int main() {
 
     createComputePipeline("shaders/astar.spv");
 
-    const uint32_t elements = 1;
+    const uint32_t elements = 2;
     VkBuffer buffersNodes;
     VkBuffer buffersPaths;
 
@@ -543,20 +543,19 @@ int main() {
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, pipeline);
 
     vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, pipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
-    vkCmdDispatch(commandBuffer, 1, 1, 1);
+    vkCmdDispatch(commandBuffer, 2, 1, 1);
 
     if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
         throw std::runtime_error("failed to end command buffer");
     }
-
 
     // Node SSBO mapping =======================================
     NodeData* data = nullptr;
     if (vkMapMemory(device, memoryNode, 0, VK_WHOLE_SIZE, 0, reinterpret_cast<void**>(&data)) != VK_SUCCESS) {
         throw std::runtime_error("failed to map device memory");
     }
-    NodeData nodeData;
     Node nodes[20];
+    Node nodes2[20];
     int xpos = 0;
     int ypos = 0;
     for (int i = 0; i < 20; i++)
@@ -568,52 +567,66 @@ int main() {
         nodes[i].passable = 1;
         nodes[i].ID = i;
         nodes[i].previousID = -1;
-        if (i == 10)
-        {
-            std::cout << "gay";
-       }
+        nodes2[i].costToGoal = 1;
+        nodes2[i].totalCostFromStart = 0;
+        nodes2[i].totalCostAccumlative = 100;
+        nodes2[i].marked = 0;
+        nodes2[i].passable = 1;
+        nodes2[i].ID = i;
+        nodes2[i].previousID = -1;
+
         // Left
         if (i - 1 >= 0 && ((i != 5) && (i != 10) && (i != 15)))
         {
             nodes[i].arcIDs[0] = (i - 1);
+            nodes2[i].arcIDs[0] = (i - 1);
         }
         else
         {
             nodes[i].arcIDs[0] = -1;
+            nodes2[i].arcIDs[0] = -1;
         }
         
         // Right
         if (i + 1 < 20 && ((i != 4) && (i != 9) && (i != 14)))
         {
             nodes[i].arcIDs[1] = (i + 1);
+            nodes2[i].arcIDs[1] = (i + 1);
         }
         else
         {
             nodes[i].arcIDs[1] = -1;
+            nodes2[i].arcIDs[1] = -1;
         }
         
         // Up
         if (i - 5 >= 0)
         {
             nodes[i].arcIDs[2] = (i - 5);
+            nodes2[i].arcIDs[2] = (i - 5);
         }
         else
         {
             nodes[i].arcIDs[2] = -1;
+            nodes2[i].arcIDs[2] = -1;
         }
 
         // Down
         if (i + 5 < 20)
         {
             nodes[i].arcIDs[3] = (i + 5);
+            nodes2[i].arcIDs[3] = (i + 5);
         }
         else
         {
             nodes[i].arcIDs[3] = -1;
+            nodes2[i].arcIDs[3] = -1;
         }
 
         nodes[i].position.x = xpos;
         nodes[i].position.y = ypos;
+        nodes2[i].position.x = xpos;
+        nodes2[i].position.y = ypos;
         xpos++;
 
         if (i % 5 == 4)
@@ -627,13 +640,22 @@ int main() {
     for (int i = 0; i < 20; i++)
     {
         nodes[i].costToGoal = abs(nodes[18].position.x - nodes[i].position.x) + abs(nodes[18].position.y - nodes[i].position.y);
+        nodes2[i].costToGoal = abs(nodes2[18].position.x - nodes2[i].position.x) + abs(nodes2[18].position.y - nodes2[i].position.y);
+
     }
     NodeData* data1;
+    NodeData* data2;
     NodeData* dataR;
+    NodeData* dataR2;
+    
     data1 = data;
+    data2 = data + 1;
     data1->start = 5;
     data1->goal = 18;
+    data2->start = 4;
+    data2->goal = 18;
     std::copy(std::begin(nodes), std::end(nodes), std::begin(data1->nodes));
+    std::copy(std::begin(nodes), std::end(nodes), std::begin(data2->nodes));
     vkUnmapMemory(device, memoryNode);
     // ============================================================
 
@@ -644,14 +666,21 @@ int main() {
         throw std::runtime_error("failed to map device memory");
     }
     Path fillerData;
+    Path fillerData2;
     for (int i = 0; i < 20; i++)
     {
         fillerData.pathList[i] = -1;
+        fillerData2.pathList[i] = -1;
     }
     Path* populatingPaths;
+    Path* populatingPaths2;
     Path* returnPaths;
+    Path* returnPaths2;
     populatingPaths = dataPaths;
+    populatingPaths2 = dataPaths + 1;
     std::copy(std::begin(fillerData.pathList), std::end(fillerData.pathList), std::begin(populatingPaths->pathList));
+    std::copy(std::begin(fillerData2.pathList), std::end(fillerData2.pathList), std::begin(populatingPaths2->pathList));
+
     vkUnmapMemory(device, memoryPaths);
     // =============================================================
 
@@ -669,14 +698,14 @@ int main() {
         throw std::runtime_error("failed to map device memory");
     }
     dataR = data;
-    vkUnmapMemory(device, memoryNode);
-
-
+    dataR2 = data + 1;
+ 
     Path* pathsReturned = nullptr;
     if (vkMapMemory(device, memoryPaths, 0, VK_WHOLE_SIZE, 0, reinterpret_cast<void**>(&pathsReturned)) != VK_SUCCESS) {
         throw std::runtime_error("failed to map device memory");
     }
     returnPaths = pathsReturned;
+    returnPaths2 = pathsReturned + 1;
     vkUnmapMemory(device, memoryPaths);
 
 

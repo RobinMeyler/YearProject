@@ -25,7 +25,6 @@ struct Path{
     int pathList[20];
 };
 
-layout (local_size_x = 2) in;
 layout(std430, set=0, binding=0) buffer inA { NodeData nd[]; };
 layout(std430, set=0, binding=1) buffer outR { Path paths[]; };
 
