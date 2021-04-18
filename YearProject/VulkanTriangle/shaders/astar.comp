@@ -21,9 +21,13 @@ struct NodeData{
 	Node nodes[20];
 };
 
+struct Path{
+    int pathList[20];
+};
+
 layout (local_size_x = 2) in;
 layout(std430, set=0, binding=0) buffer inA { NodeData nd[]; };
-layout(std430, set=0, binding=1) buffer outR { int paths[][20]; };
+layout(std430, set=0, binding=1) buffer outR { Path paths[]; };
 
 // layout(std430, set=0, binding=1) buffer inB { int oop[]; };
 // layout (binding = 3) uniform Node nodes[20];					// All grid nodes
@@ -152,7 +156,7 @@ void main(){
 		{
 			count++;
 			// Updates the corrosponding inovation
-			//paths[index][t] = nd[index].nodes[loop].ID;
+			paths[index].pathList[t] = nd[index].nodes[loop].ID;
 		}	
 		else
 		{
