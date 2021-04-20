@@ -13,7 +13,7 @@ public:
 	float x, y, z;
 	Cube(float t_xDis, float t_yDis, float t_zDist);
 	void updateColor(glm::vec3 t_color);
-	void updatePos(float t_move);
+	void updatePos(float t_move, float t_moveY);
 	std::vector<Vertex3D> vertices = {
 
 		// Front Face
@@ -22,13 +22,13 @@ public:
 		{ {	 1.00f,  1.00f, 1.00f  } , {1.0f, 1.0f, 1.0f}},
 		{ {	-1.00f,  1.00f, 1.00f } , { 0.0f, 0.0f, 1.0f}},
 
-			// Top Face
+		// Top Face
 		{ {	-1.00f,  1.00f,  1.00f } , { 1.0f, 0.0f, 0.0f}},
 		{ {	 1.00f,  1.00f, 1.00f } , { 0.0f, 1.0f, 0.0f}},
 		{ {	 1.00f,  1.00f, -1.00f  } , { 1.0f, 1.0f, 1.0f}},
 		{ {	-1.00f,  1.00f,  -1.00f } , { 0.0f, 0.0f, 1.0f}},
 
-	// Back Face
+		// Back Face
 		{ {	 1.00f, -1.00f, -1.00f  } , { 1.0f, 0.0f, 0.0f}},
 		{ {	-1.00f, -1.00f,  -1.00f } , {0.0f, 1.0f, 0.0f}},
 		{ {	-1.00f,  1.00f, -1.00f } , { 1.0f, 1.0f, 1.0f}},
@@ -37,7 +37,7 @@ public:
 		// Bottom Face
 		{{-1.00f, -1.00f , -1.00f } , {1.0f, 0.0f, 0.0f}},
 		{{ 1.00f, -1.00f, -1.00f  } , {0.0f, 1.0f, 0.0f}},
-		{{ 1.00f, -1.00f, 1.00f  } , { 01.0f, 1.0f, 1.0f}},
+		{{ 1.00f, -1.00f, 1.00f  } , { 1.0f, 1.0f, 1.0f}},
 		{{-1.00f, -1.00f , 1.00f } , {0.0f, 0.0f, 1.0f}},
 
 		// Left Face

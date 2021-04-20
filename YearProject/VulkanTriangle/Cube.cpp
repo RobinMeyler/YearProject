@@ -25,10 +25,11 @@ void Cube::updateColor(glm::vec3 t_color)
 	}
 }
 
-void Cube::updatePos(float t_move)
+void Cube::updatePos(float t_moveX, float t_moveY)
 {
 	for (auto& pos : vertices)
 	{
-		pos.pos.x += t_move;
+		pos.pos.x += t_moveX;
+		pos.pos.y += t_moveY;
 	}
 }

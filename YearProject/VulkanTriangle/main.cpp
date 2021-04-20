@@ -15,6 +15,7 @@
 #include <set>
 #include <fstream>
 #include <array>
+#include "GlobalStructs.h"
 #include "Render.h"
 
 Render m_renderer;
@@ -37,7 +38,10 @@ const bool enableValidationLayers = true;
 class HelloTriangleApplication {            // Seperated into a better structure later
 public:
 	std::vector<Cube*> m_gameCubes;
-	Cube* m_start;
+	std::vector<Node*> m_gameNodes;
+	Cube* m_start1;
+	Cube* m_start2;
+	Cube* m_start3;
 	Cube* m_goal;
 	void run() {
 		initWindow();                       // Setup GLFW window and settings for Vulkan
@@ -69,7 +73,7 @@ private:
 		while (!glfwWindowShouldClose(window)) {
 			glfwPollEvents();
 
-			m_start->updatePos(0.001f);
+			//m_start1->updatePos(0.001f);
 
 			m_renderer.draw();
 		}
@@ -85,38 +89,105 @@ private:
 	void setupCubeMap()
 	{
 		// Bottome layer
-		for (int i = -10; i < 10; i = i+2)
+		int w = 0;
+		int h = 0;
+		for (int i = 0; i < 50; i = i+2)
 		{
-			for(int j = -10; j < 10; j= j+2)
+			for(int j = 0; j < 50; j= j+2)
 			{
 				Cube* cube = new Cube( i, j, 0.0f );
 				cube->updateColor(glm::vec3(0.5f, 0.5f, 0.5f));
 				m_gameCubes.push_back(cube);
+				h++;
 			}	
+			w++;
+			h = 0;
 		}
 	
 
 		// Top layer
-		for (int i = -10; i < 10; i = i + 2)
+		int count = 0;
+		int w2 = 0;
+		int h2 = 0;
+		for (int i = 0; i < 50; i = i + 2)
 		{
-			for (int j = -10; j < 10; j = j + 2)
+			for (int j = 0; j < 50; j = j + 2)
 			{
-				if (j == -10 || j == 8 || i == -10 || i == 8 || (i == 0 && j == 0) || (i == 0 && j == 2))
+				int rdm = rand() % 4;
+				if (j == 0 || j == 48 || i == 0 || i == 48 || rdm % 4 == 0)
 				{
 					Cube* cube = new Cube(i, j, 2.0f);
-					cube->updateColor(glm::vec3(1.0f, 1.0f, 1.0f));
+					//cube->updateColor(glm::vec3(0.0f, 1.0f, 0.0f));
 					m_gameCubes.push_back(cube);
 				}
-			}
-		}
-		m_start = new Cube(-6, -6, 2.0f);
-		m_start->updateColor(glm::vec3(0.0f, 0.0f, 1.0f));
-		m_gameCubes.push_back(m_start);
+				count++;
+				Node* node = new Node;
+				node->costToGoal = 1;
+				node->totalCostFromStart = 0;
+				node->totalCostAccumlative = 1000;
+				node->marked = 0;
+			/*	if (rdm % 4 == 0)
+					node->passable = 0;
+				else*/
+					node->passable = 1;
+				node->ID = (h2 + w2);
+				node->previousID = -1;
+				node->position.x = j;
+				node->position.y = i;
 
-		m_goal = new Cube(6, 6, 2.0f);
+				// Left
+				if (j != 0)
+					node->arcIDs[0] = ((h2 + w2) - 1);
+				else
+					node->arcIDs[0] = -1;
+
+				// Right
+				if (j != 48)
+					node->arcIDs[1] = ((h2 + w2) + 1);
+				else
+					node->arcIDs[1] = -1;
+
+				// Up
+				if (i != 0)
+					node->arcIDs[2] = ((h2 + w2) - 25);
+				else
+					node->arcIDs[2] = -1;
+
+				// Down
+				if (i != 48)
+					node->arcIDs[3] = ((h2 + w2) + 25);
+				else
+					node->arcIDs[3] = -1;
+				
+				m_gameNodes.push_back(node);
+				h2++;
+			}
+			
+		}
+
+		// 18 is test goal
+		for (auto &nod : m_gameNodes)
+		{
+			nod->costToGoal = abs(m_gameNodes.at(535)->position.x - nod->position.x) + abs(m_gameNodes.at(535)->position.y - nod->position.y);
+		}
+
+		m_start1 = new Cube(m_gameNodes.at(190)->position.x, m_gameNodes.at(190)->position.y, 2.0f);
+		m_start1->updateColor(glm::vec3(0.0f, 0.0f, 1.0f));
+		m_gameCubes.push_back(m_start1);
+
+		m_start2 = new Cube(m_gameNodes.at(176)->position.x, m_gameNodes.at(176)->position.y, 2.0f);
+		m_start2->updateColor(glm::vec3(0.0f, 0.0f, 1.0f));
+		m_gameCubes.push_back(m_start2);
+
+		m_start3 = new Cube(m_gameNodes.at(129)->position.x, m_gameNodes.at(129)->position.y, 2.0f);
+		m_start3->updateColor(glm::vec3(0.0f, 0.0f, 1.0f));
+		m_gameCubes.push_back(m_start3);
+
+		m_goal = new Cube(m_gameNodes.at(535)->position.x, m_gameNodes.at(535)->position.y, 2.0f);
 		m_goal->updateColor(glm::vec3(1.0f, 0.0f, 0.0f));
 		m_gameCubes.push_back(m_goal);
 
+		m_renderer.addNodes(&m_gameNodes);
 		m_renderer.creatBufferObjects(m_gameCubes.size());
 	}
 };

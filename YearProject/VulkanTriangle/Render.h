@@ -6,10 +6,6 @@
 #define GLFW_INCLUDE_VULKAN		// This includes Vulkan
 #include <GLFW/glfw3.h>
 
-#define GLM_FORCE_RADIANS
-#define GLM_FORCE_DEFAULT_ALIGNED_GENTYPES
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/glm.hpp>
 
 #include <chrono>
 #include <algorithm>	// Min Max
@@ -25,6 +21,8 @@
 #include <set>
 #include <fstream>
 #include <array>
+
+#include "GlobalStructs.h"
 #include "Cube.h"
 
 
@@ -56,38 +54,6 @@ const int WIDTH = 1600;      // Screen deetz
 const int HEIGHT = 1200;
 
 
-struct UniformBufferObject {
-	alignas(16)glm::mat4 model;
-	alignas(16)glm::mat4 view;
-	alignas(16)glm::mat4 proj;
-};
-
-struct Node
-{
-	float costToGoal;
-	float totalCostFromStart;
-	float totalCostAccumlative;
-	int marked;		// Has been reached yet or not
-	int passable;
-	int ID;
-	int previousID;		// Previous id for finidng path
-	int arcIDs[4];		// 4 neighbours in grid by ID
-	glm::vec2 position;
-	int padding;        // Aligning the memoryw with the base/ largest data -> Vec2
-};
-
-
-struct NodeData
-{
-	int start;		// Start ID
-	int goal;		// Goal ID
-	Node nodes[20];
-};
-
-struct Path
-{
-	int pathList[20];
-};
 
 class Render {
 public:
@@ -123,6 +89,7 @@ public:
 	void allocateBufferMemoryAndBind(VkBuffer& buffers, VkDeviceMemory& bufferMemory, int t_offset);
 	void allocateDescriptorSets(const std::vector<VkBuffer> &buffers);
 	void createComputeCommandPoolAndBuffer();
+	void addNodes(std::vector<Node*> *t_nodes);
 
 	void addVBOs(std::vector<Cube*> *t_cubes);
 	bool isDeviceSuitable(VkPhysicalDevice device);
@@ -144,6 +111,7 @@ public:
 	void updateBufferMemory(Cube& t_cube, VkBuffer& t_vertexbuffer, VkDeviceMemory& t_vertexbuffermemory);
 
 	std::vector<Cube*>* cubes;
+	std::vector<Node*>* nodes;
 	bool framebufferResized = false;
 private:
 
@@ -201,6 +169,12 @@ private:
 	NodeData* dataR;
 	NodeData* dataR2;
 	NodeData* dataR3;
+	int next = 1;
+	int last = 0;
+	int wait = 0;
+	std::vector<int> finalPath;
+	std::vector<int> finalPath2;
+	std::vector<int> finalPath3;
 };	
 
 

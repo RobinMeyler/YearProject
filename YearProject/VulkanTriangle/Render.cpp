@@ -705,7 +705,7 @@ void Render::createCommandBuffers()
 		renderPassInfo.renderArea.offset = { 0, 0 };
 		renderPassInfo.renderArea.extent = swapChainExtent;
 
-		VkClearValue clearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
+		VkClearValue clearColor = { 0.1f, 0.2f, 0.2f, 1.0f };
 		renderPassInfo.clearValueCount = 1;
 		renderPassInfo.pClearValues = &clearColor;
 
@@ -745,95 +745,13 @@ void Render::createCommandBuffers()
 	if (vkMapMemory(device, memoryNode, 0, VK_WHOLE_SIZE, 0, reinterpret_cast<void**>(&data)) != VK_SUCCESS) {
 		throw std::runtime_error("failed to map device memory");
 	}
-	Node nodes[20];
-	Node nodes2[20];
-	int xpos = 0;
-	int ypos = 0;
-	for (int i = 0; i < 20; i++)
+	Node nodesTemp[625];
+	for (int i = 0; i < 625; i++)
 	{
-		nodes[i].costToGoal = 1;
-		nodes[i].totalCostFromStart = 0;
-		nodes[i].totalCostAccumlative = 100;
-		nodes[i].marked = 0;
-		nodes[i].passable = 1;
-		nodes[i].ID = i;
-		nodes[i].previousID = -1;
-		nodes2[i].costToGoal = 1;
-		nodes2[i].totalCostFromStart = 0;
-		nodes2[i].totalCostAccumlative = 100;
-		nodes2[i].marked = 0;
-		nodes2[i].passable = 1;
-		nodes2[i].ID = i;
-		nodes2[i].previousID = -1;
-
-		// Left
-		if (i - 1 >= 0 && ((i != 5) && (i != 10) && (i != 15)))
-		{
-			nodes[i].arcIDs[0] = (i - 1);
-			nodes2[i].arcIDs[0] = (i - 1);
-		}
-		else
-		{
-			nodes[i].arcIDs[0] = -1;
-			nodes2[i].arcIDs[0] = -1;
-		}
-
-		// Right
-		if (i + 1 < 20 && ((i != 4) && (i != 9) && (i != 14)))
-		{
-			nodes[i].arcIDs[1] = (i + 1);
-			nodes2[i].arcIDs[1] = (i + 1);
-		}
-		else
-		{
-			nodes[i].arcIDs[1] = -1;
-			nodes2[i].arcIDs[1] = -1;
-		}
-
-		// Up
-		if (i - 5 >= 0)
-		{
-			nodes[i].arcIDs[2] = (i - 5);
-			nodes2[i].arcIDs[2] = (i - 5);
-		}
-		else
-		{
-			nodes[i].arcIDs[2] = -1;
-			nodes2[i].arcIDs[2] = -1;
-		}
-
-		// Down
-		if (i + 5 < 20)
-		{
-			nodes[i].arcIDs[3] = (i + 5);
-			nodes2[i].arcIDs[3] = (i + 5);
-		}
-		else
-		{
-			nodes[i].arcIDs[3] = -1;
-			nodes2[i].arcIDs[3] = -1;
-		}
-
-		nodes[i].position.x = xpos;
-		nodes[i].position.y = ypos;
-		nodes2[i].position.x = xpos;
-		nodes2[i].position.y = ypos;
-		xpos++;
-
-		if (i % 5 == 4)
-		{
-			ypos++;
-			xpos = 0;
-		}
-
+		nodesTemp[i] = *nodes->at(i);
 	}
-	// 18 is test goal
-	for (int i = 0; i < 20; i++)
-	{
-		nodes[i].costToGoal = abs(nodes[18].position.x - nodes[i].position.x) + abs(nodes[18].position.y - nodes[i].position.y);
-		nodes2[i].costToGoal = abs(nodes2[18].position.x - nodes2[i].position.x) + abs(nodes2[18].position.y - nodes2[i].position.y);
 
-	}
+	
 	NodeData* data1;
 	NodeData* data2;
 	NodeData* data3;
@@ -842,20 +760,20 @@ void Render::createCommandBuffers()
 	data2 = data + 1;
 	data3 = data + 2;
 
-	data1->start = 5;
-	data1->goal = 18;
-	data2->start = 4;
-	data2->goal = 18;
-	data3->start = 10;
-	data3->goal = 18;
+	data1->start = 190;
+	data1->goal = 535;
 
+	data2->start = 176;
+	data2->goal = 535;
 
-	std::copy(std::begin(nodes), std::end(nodes), std::begin(data1->nodes));
-	std::copy(std::begin(nodes), std::end(nodes), std::begin(data2->nodes));
-	std::copy(std::begin(nodes), std::end(nodes), std::begin(data3->nodes));
+	data3->start = 129;
+	data3->goal = 535;
+
+	std::copy(std::begin(nodesTemp), std::end(nodesTemp), std::begin(data1->nodes));
+	std::copy(std::begin(nodesTemp), std::end(nodesTemp), std::begin(data2->nodes));
+	std::copy(std::begin(nodesTemp), std::end(nodesTemp), std::begin(data3->nodes));
 	vkUnmapMemory(device, memoryNode);
 	// ============================================================
-
 
 	// Paths SSBO mapping =========================================
 	Path* dataPaths = nullptr;
@@ -863,27 +781,91 @@ void Render::createCommandBuffers()
 		throw std::runtime_error("failed to map device memory");
 	}
 	Path fillerData;
-	Path fillerData2;
-	for (int i = 0; i < 20; i++)
+	for (int i = 0; i < 625; i++)
 	{
 		fillerData.pathList[i] = -1;
-		fillerData2.pathList[i] = -1;
 	}
 	Path* populatingPaths;
 	Path* populatingPaths2;
 	Path* populatingPaths3;
-
-
 
 	populatingPaths = dataPaths;
 	populatingPaths2 = dataPaths + 1;
 	populatingPaths3 = dataPaths + 2;
 
 	std::copy(std::begin(fillerData.pathList), std::end(fillerData.pathList), std::begin(populatingPaths->pathList));
-	std::copy(std::begin(fillerData2.pathList), std::end(fillerData2.pathList), std::begin(populatingPaths2->pathList));
-	std::copy(std::begin(fillerData2.pathList), std::end(fillerData2.pathList), std::begin(populatingPaths3->pathList));
+	std::copy(std::begin(fillerData.pathList), std::end(fillerData.pathList), std::begin(populatingPaths2->pathList));
+	std::copy(std::begin(fillerData.pathList), std::end(fillerData.pathList), std::begin(populatingPaths3->pathList));
 
 	vkUnmapMemory(device, memoryPaths);
+
+	VkSubmitInfo submitInfo2 = {};
+	submitInfo2.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	submitInfo2.commandBufferCount = 1;
+	submitInfo2.pCommandBuffers = &computeCommandBuffer;
+	vkQueueSubmit(graphicsQueue, 1, &submitInfo2, VK_NULL_HANDLE);
+	// but we can simply wait for all the work to be done
+	vkQueueWaitIdle(graphicsQueue);
+
+	data = nullptr;
+	if (vkMapMemory(device, memoryNode, 0, VK_WHOLE_SIZE, 0, reinterpret_cast<void**>(&data)) != VK_SUCCESS) {
+		throw std::runtime_error("failed to map device memory");
+	}
+	dataR = data;
+	dataR2 = data + 1;
+	dataR3 = data + 2;
+	vkUnmapMemory(device, memoryNode);
+
+	Path* pathsReturned = nullptr;
+	if (vkMapMemory(device, memoryPaths, 0, VK_WHOLE_SIZE, 0, reinterpret_cast<void**>(&pathsReturned)) != VK_SUCCESS) {
+		throw std::runtime_error("failed to map device memory");
+	}
+	returnPaths = pathsReturned;
+	returnPaths2 = pathsReturned + 1;
+	returnPaths3 = pathsReturned + 2;
+	vkUnmapMemory(device, memoryPaths);
+
+	finalPath.push_back(535);
+	for (int i = 0; i < 625; i++)
+	{
+		if (returnPaths->pathList[i] != -1)
+		{
+			finalPath.push_back(returnPaths->pathList[i]);
+		}
+		else
+		{
+			break;
+		}
+	}
+	std::reverse(finalPath.begin(), finalPath.end());
+
+	finalPath2.push_back(535);
+	for (int i = 0; i < 625; i++)
+	{
+		if (returnPaths2->pathList[i] != -1)
+		{
+			finalPath2.push_back(returnPaths2->pathList[i]);
+		}
+		else
+		{
+			break;
+		}
+	}
+	std::reverse(finalPath2.begin(), finalPath2.end());
+
+	finalPath3.push_back(535);
+	for (int i = 0; i < 625; i++)
+	{
+		if (returnPaths3->pathList[i] != -1)
+		{
+			finalPath3.push_back(returnPaths3->pathList[i]);
+		}
+		else
+		{
+			break;
+		}
+	}
+	std::reverse(finalPath3.begin(), finalPath3.end());
 }
 
 void Render::createSyncObjects()
@@ -914,31 +896,33 @@ void Render::draw()
 {
 	vkWaitForFences(device, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
 
-	VkSubmitInfo submitInfo2 = {};
-	submitInfo2.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-	submitInfo2.commandBufferCount = 1;
-	submitInfo2.pCommandBuffers = &computeCommandBuffer;
-	vkQueueSubmit(graphicsQueue, 1, &submitInfo2, VK_NULL_HANDLE);
-	// but we can simply wait for all the work to be done
-	vkQueueWaitIdle(graphicsQueue);
+	//VkSubmitInfo submitInfo2 = {};
+	//submitInfo2.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	//submitInfo2.commandBufferCount = 1;
+	//submitInfo2.pCommandBuffers = &computeCommandBuffer;
+	//vkQueueSubmit(graphicsQueue, 1, &submitInfo2, VK_NULL_HANDLE);
+	//// but we can simply wait for all the work to be done
+	//vkQueueWaitIdle(graphicsQueue);
 
-	NodeData* data = nullptr;
-	if (vkMapMemory(device, memoryNode, 0, VK_WHOLE_SIZE, 0, reinterpret_cast<void**>(&data)) != VK_SUCCESS) {
-		throw std::runtime_error("failed to map device memory");
-	}
-	dataR = data;
-	dataR2 = data + 1;
-	dataR3 = data + 2;
-	vkUnmapMemory(device, memoryNode);
+	//NodeData* data = nullptr;
+	//if (vkMapMemory(device, memoryNode, 0, VK_WHOLE_SIZE, 0, reinterpret_cast<void**>(&data)) != VK_SUCCESS) {
+	//	throw std::runtime_error("failed to map device memory");
+	//}
+	//dataR = data;
+	//dataR2 = data + 1;
+	//dataR3 = data + 2;
+	//vkUnmapMemory(device, memoryNode);
 
-	Path* pathsReturned = nullptr;
-	if (vkMapMemory(device, memoryPaths, 0, VK_WHOLE_SIZE, 0, reinterpret_cast<void**>(&pathsReturned)) != VK_SUCCESS) {
-		throw std::runtime_error("failed to map device memory");
-	}
-	returnPaths = pathsReturned;
-	returnPaths2 = pathsReturned + 1;
-	returnPaths3 = pathsReturned + 2;
-	vkUnmapMemory(device, memoryPaths);
+	//Path* pathsReturned = nullptr;
+	//if (vkMapMemory(device, memoryPaths, 0, VK_WHOLE_SIZE, 0, reinterpret_cast<void**>(&pathsReturned)) != VK_SUCCESS) {
+	//	throw std::runtime_error("failed to map device memory");
+	//}
+	//returnPaths = pathsReturned;
+	//returnPaths2 = pathsReturned + 1;
+	//returnPaths3 = pathsReturned + 2;
+	//vkUnmapMemory(device, memoryPaths);
+
+
 
 
 
@@ -960,8 +944,34 @@ void Render::draw()
 	imagesInFlight[imageIndex] = inFlightFences[currentFrame];
 
 	// Update Start Block
-	updateBufferMemory(*cubes->at(cubes->size() - 2), vertexBuffers.at(cubes->size() - 2), vertexBufferMemorys.at(cubes->size() - 2));
-
+	if (wait > 750 && next < finalPath.size())
+	{
+		float oop = nodes->at(finalPath.at(next))->position.x - nodes->at(finalPath.at(last))->position.x;
+		float oop2 = nodes->at(finalPath.at(next))->position.y - nodes->at(finalPath.at(last))->position.y;
+		cubes->at(cubes->size() - 4)->updatePos(oop, oop2);
+		updateBufferMemory(*cubes->at(cubes->size() - 4), vertexBuffers.at(cubes->size() - 4), vertexBufferMemorys.at(cubes->size() - 4));
+	}
+	// Update Start Block
+	if (wait > 750 && next < finalPath2.size())
+	{
+		float oop = nodes->at(finalPath2.at(next))->position.x - nodes->at(finalPath2.at(last))->position.x;
+		float oop2 = nodes->at(finalPath2.at(next))->position.y - nodes->at(finalPath2.at(last))->position.y;
+		cubes->at(cubes->size() - 3)->updatePos(oop, oop2);
+		updateBufferMemory(*cubes->at(cubes->size() - 3), vertexBuffers.at(cubes->size() - 3), vertexBufferMemorys.at(cubes->size() - 3));
+	}
+	// Update Start Block
+	if (wait > 750 && next < finalPath3.size())
+	{
+		wait = 0;
+		float oop = nodes->at(finalPath3.at(next))->position.x - nodes->at(finalPath3.at(last))->position.x;
+		float oop2 = nodes->at(finalPath3.at(next))->position.y - nodes->at(finalPath3.at(last))->position.y;
+		cubes->at(cubes->size() - 2)->updatePos(oop, oop2);
+		updateBufferMemory(*cubes->at(cubes->size() - 2), vertexBuffers.at(cubes->size() - 2), vertexBufferMemorys.at(cubes->size() - 2));
+		last = next;
+		next++;
+	}
+	wait++;
+	std::cout << wait << std::endl;
 	updateUniformBuffer(imageIndex);
 
 	VkSubmitInfo submitInfo = {};
@@ -1233,17 +1243,21 @@ void Render::createComputeCommandPoolAndBuffer()
 	}
 }
 
+void Render::addNodes(std::vector<Node*> *t_nodes)
+{
+	nodes = t_nodes;
+}
+
 void Render::updateUniformBuffer(uint32_t currentImage)
 {
 	static auto startTime = std::chrono::high_resolution_clock::now();
-
 	auto currentTime = std::chrono::high_resolution_clock::now();
 	float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
 
 	UniformBufferObject ubo{};
-	ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(5.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-	ubo.view = glm::lookAt(glm::vec3(0.0f, -20.0f, 30.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-	ubo.proj = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 100.0f);
+	ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	ubo.view = glm::lookAt(glm::vec3(25.0f, -20.0f, 50.0f), glm::vec3(25.0f, 20.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	ubo.proj = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 1000.0f);
 	ubo.proj[1][1] *= -1;
 
 	void* data;

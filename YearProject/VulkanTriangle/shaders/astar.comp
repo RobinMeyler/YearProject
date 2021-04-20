@@ -18,11 +18,11 @@ struct Node{
 struct NodeData{
 	int start;		// Start ID
 	int goal;		// Goal ID
-	Node nodes[20];
+	Node nodes[625];
 };
 
 struct Path{
-    int pathList[20];
+    int pathList[625];
 };
 
 layout(std430, set=0, binding=0) buffer inA { NodeData nd[]; };
@@ -31,12 +31,12 @@ layout(std430, set=0, binding=1) buffer outR { Path paths[]; };
 // layout(std430, set=0, binding=1) buffer inB { int oop[]; };
 // layout (binding = 3) uniform Node nodes[20];					// All grid nodes
 
-int pq[20];
+int pq[625];
 
 int queueSize()
 {
 	int size = 0;
-	for(int s = 0; s < 20; s++)
+	for(int s = 0; s < 625; s++)
 	{
 		if(pq[s] != -1)
 		{
@@ -50,20 +50,20 @@ void pop()
 {
 	// Alternative would be to move the memory pointer over 4 bytes
 	// Shift all of the indexes down one and delete the last
-	for(int j = 0; j < 19; j++)
+	for(int j = 0; j < 624; j++)
 	{
 		pq[j] = pq[j+1];
 	}
-	pq[19] = -1; // Empty
+	pq[624] = -1; // Empty
 }
 
 void push(const uint index, int nodeID)
 {
-	for(int j = 1; j < 20; j++)
+	for(int j = 1; j < 625; j++)
 	{
 		if(nd[index].nodes[pq[j]].totalCostAccumlative >= nd[index].nodes[pq[nodeID]].totalCostAccumlative )
 		{	
-			for(int t = j + 1; t < 19; t++)
+			for(int t = j + 1; t < 624; t++)
 			{
 				pq[t] = pq[t-1];
 			}
@@ -79,14 +79,10 @@ void main(){
 	const uint index = gl_GlobalInvocationID.x;
 
 	// Set all in the queue to -1 for reference
-	pq[0] = -1; pq[1] = -1; pq[2] = -1;
-	pq[3] = -1; pq[4] = -1; pq[5] = -1;
-	pq[6] = -1; pq[7] = -1; pq[8] = -1;
-	pq[9] = -1;
-	pq[10] = -1; pq[11] = -1; pq[12] = -1;
-	pq[13] = -1; pq[14] = -1; pq[15] = -1;
-	pq[16] = -1; pq[17] = -1; pq[18] = -1;
-	pq[19] = -1;
+	for(int j = 1; j < 625; j++)
+	{
+		pq[j] = -1;
+	}
 
 	// Set up the start node for the queue
 	pq[0] = nd[index].start;
@@ -148,7 +144,7 @@ void main(){
 	// Setting path ID or -1 if it doesn't exist
 	int loop = nd[index].goal;
 	int count = 0;
-	for(int t = 0; t < 20; t++)
+	for(int t = 0; t < 625; t++)
 	{
 		loop = nd[index].nodes[loop].previousID;	
 		if(loop != -1)
