@@ -163,7 +163,10 @@ void main(){
 		}
 		
 	}	
-	nd[index].nodes[0].totalCostFromStart = count;
+
+	// For testing
+	//nd[index].nodes[6].totalCostFromStart = 21;
+	//paths[index].pathList[2] = 31;
 	// If all went well this specific pathfind should have filled the path of ints back for the CPU to assign to the agent
 	// This program should execute 1 - > Many A* pathfinding at the same time at the speed of the slowest single execution
 }

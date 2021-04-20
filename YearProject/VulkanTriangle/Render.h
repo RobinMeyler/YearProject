@@ -62,6 +62,33 @@ struct UniformBufferObject {
 	alignas(16)glm::mat4 proj;
 };
 
+struct Node
+{
+	float costToGoal;
+	float totalCostFromStart;
+	float totalCostAccumlative;
+	int marked;		// Has been reached yet or not
+	int passable;
+	int ID;
+	int previousID;		// Previous id for finidng path
+	int arcIDs[4];		// 4 neighbours in grid by ID
+	glm::vec2 position;
+	int padding;        // Aligning the memoryw with the base/ largest data -> Vec2
+};
+
+
+struct NodeData
+{
+	int start;		// Start ID
+	int goal;		// Goal ID
+	Node nodes[20];
+};
+
+struct Path
+{
+	int pathList[20];
+};
+
 class Render {
 public:
 	Render();
@@ -88,6 +115,14 @@ public:
 	void setupVulkan(GLFWwindow* t_window);
 	void draw();
 	void cleanUp();
+
+	void createComputePipelineLayout();
+	void createPathsBuffer(VkBuffer& buffers, uint32_t num_buffers, uint64_t buffer_size, uint64_t position);
+	void createNodeBuffer(VkBuffer& buffers, uint32_t num_buffers, uint64_t buffer_size, uint64_t position);
+	void createComputePipeline(const std::string& shaderName);
+	void allocateBufferMemoryAndBind(VkBuffer& buffers, VkDeviceMemory& bufferMemory, int t_offset);
+	void allocateDescriptorSets(const std::vector<VkBuffer> &buffers);
+	void createComputeCommandPoolAndBuffer();
 
 	void addVBOs(std::vector<Cube*> *t_cubes);
 	bool isDeviceSuitable(VkPhysicalDevice device);
@@ -139,24 +174,34 @@ private:
 	std::vector<VkDeviceMemory> vertexBufferMemorys;
 	std::vector<VkBuffer> indexBuffers;
 	std::vector<VkDeviceMemory> indexBufferMemorys;
-	//VkBuffer vertexBuffer;
-	//VkDeviceMemory vertexBufferMemory;
-	//VkBuffer indexBuffer;
-	//VkDeviceMemory indexBufferMemory;
-	//VkBuffer vertexBuffer2;
-	//VkDeviceMemory vertexBufferMemory2;
-	//VkBuffer indexBuffer2;
-	//VkDeviceMemory indexBufferMemory2;
 	VkDescriptorSetLayout descriptorSetLayout;
 	std::vector<VkBuffer> uniformBuffers;
 	std::vector<VkDeviceMemory> uniformBuffersMemory;
-
 	VkDescriptorPool descriptorPool;
 	std::vector<VkDescriptorSet> descriptorSets;
 
 
+	VkBuffer stagingBuffer;
+	VkDeviceMemory stagingBufferMemory;
+	VkDescriptorSetLayout setLayout;
+	VkPipelineLayout pipelineLayoutCompute;
+	VkPipeline pipelineCompute;
+	VkDescriptorPool descriptorPoolCompute;
+	VkDescriptorSet descriptorSetCompute;
+	VkCommandBuffer computeCommandBuffer;
+	VkDeviceMemory memoryNode;
+	VkDeviceMemory memoryPaths;
+	VkBuffer buffersNodes;
+	VkBuffer buffersPaths;
 
-};
+	std::vector<VkBuffer> m_buffers;
+	Path* returnPaths;
+	Path* returnPaths2;
+	Path* returnPaths3;
+	NodeData* dataR;
+	NodeData* dataR2;
+	NodeData* dataR3;
+};	
 
 
 struct Vertex2 {
