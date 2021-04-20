@@ -751,7 +751,6 @@ void Render::createCommandBuffers()
 		nodesTemp[i] = *nodes->at(i);
 	}
 
-	
 	NodeData* data1;
 	NodeData* data2;
 	NodeData* data3;
