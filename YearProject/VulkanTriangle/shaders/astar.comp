@@ -61,12 +61,27 @@ void push(const uint index, int nodeID)
 {
 	for(int j = 1; j < 625; j++)
 	{
-		if(nd[index].nodes[pq[j]].totalCostAccumlative >= nd[index].nodes[pq[nodeID]].totalCostAccumlative )
-		{	
-			for(int t = j + 1; t < 624; t++)
-			{
-				pq[t] = pq[t-1];
+		if(pq[j] != -1)
+		{
+			if(nd[index].nodes[pq[j]].totalCostAccumlative > nd[index].nodes[nodeID].totalCostAccumlative )
+			{	
+				for(int t = j + 1; t < 625; t++)
+				{
+					if(pq[t] != -1)
+					{
+						pq[t] = pq[t-1];
+					}
+					else
+					{
+						break;
+					}
+				}
+				pq[j] = nodeID;
+				break;
 			}
+		}
+		else
+		{
 			pq[j] = nodeID;
 			break;
 		}
@@ -128,15 +143,13 @@ void main(){
 
 			if(nd[index].nodes[arc].marked == 0)
 			{
-				
 				push(index, arc);	
-				//nd[index].nodes[0].costToGoal = queueSize();
-				//return;
 				nd[index].nodes[arc].marked = 1;
 			}
 		}
 		// remove pq[0] from pq	(Action)
 		// assign new pq[0] from pq[1] (Action)
+
 		pop();
 	}
 

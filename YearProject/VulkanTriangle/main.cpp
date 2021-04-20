@@ -95,7 +95,7 @@ private:
 		{
 			for(int j = 0; j < 50; j= j+2)
 			{
-				Cube* cube = new Cube( i, j, 0.0f );
+				Cube* cube = new Cube( j, i, 0.0f );
 				cube->updateColor(glm::vec3(0.5f, 0.5f, 0.5f));
 				m_gameCubes.push_back(cube);
 				h++;
@@ -113,23 +113,23 @@ private:
 		{
 			for (int j = 0; j < 50; j = j + 2)
 			{
-				int rdm = rand() % 4;
-				if (j == 0 || j == 48 || i == 0 || i == 48 || rdm % 4 == 0)
+				int rdm = rand() % 5;
+				Node* node = new Node;
+				node->passable = 1;
+				if (j == 0 || j == 48 || i == 0 || i == 48 || rdm % 5 == 4)
 				{
-					Cube* cube = new Cube(i, j, 2.0f);
+					Cube* cube = new Cube(j, i, 2.0f);
 					//cube->updateColor(glm::vec3(0.0f, 1.0f, 0.0f));
 					m_gameCubes.push_back(cube);
+					node->passable = 0;
 				}
 				count++;
-				Node* node = new Node;
+			
 				node->costToGoal = 1;
 				node->totalCostFromStart = 0;
 				node->totalCostAccumlative = 1000;
 				node->marked = 0;
-			/*	if (rdm % 4 == 0)
-					node->passable = 0;
-				else*/
-					node->passable = 1;
+
 				node->ID = (h2 + w2);
 				node->previousID = -1;
 				node->position.x = j;
@@ -168,7 +168,7 @@ private:
 		// 18 is test goal
 		for (auto &nod : m_gameNodes)
 		{
-			nod->costToGoal = abs(m_gameNodes.at(535)->position.x - nod->position.x) + abs(m_gameNodes.at(535)->position.y - nod->position.y);
+			nod->costToGoal = abs(m_gameNodes.at(538)->position.x - nod->position.x) + abs(m_gameNodes.at(538)->position.y - nod->position.y);
 		}
 
 		m_start1 = new Cube(m_gameNodes.at(190)->position.x, m_gameNodes.at(190)->position.y, 2.0f);
@@ -183,7 +183,7 @@ private:
 		m_start3->updateColor(glm::vec3(0.0f, 0.0f, 1.0f));
 		m_gameCubes.push_back(m_start3);
 
-		m_goal = new Cube(m_gameNodes.at(535)->position.x, m_gameNodes.at(535)->position.y, 2.0f);
+		m_goal = new Cube(m_gameNodes.at(538)->position.x, m_gameNodes.at(538)->position.y, 2.0f);
 		m_goal->updateColor(glm::vec3(1.0f, 0.0f, 0.0f));
 		m_gameCubes.push_back(m_goal);
 
