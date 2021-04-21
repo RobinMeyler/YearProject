@@ -31,14 +31,15 @@ layout(std430, set=0, binding=1) buffer outR { Path paths[]; };
 // layout(std430, set=0, binding=1) buffer inB { int oop[]; };
 // layout (binding = 3) uniform Node nodes[20];					// All grid nodes
 
-int pq[625];
-
+int pq[50];
+int count = 0;
+int leave = 0;
 int queueSize()
 {
 	int size = 0;
-	for(int s = 0; s < 625; s++)
+	for(int s = 0; s < 50; s++)
 	{
-		if(pq[s] != -1)
+		if(pq[s] != 0)
 		{
 			size++;
 		}	
@@ -46,47 +47,38 @@ int queueSize()
 	return size;
 }
 
-void pop()
+void pop(const uint index)
 {
 	// Alternative would be to move the memory pointer over 4 bytes
 	// Shift all of the indexes down one and delete the last
-	for(int j = 0; j < 624; j++)
+	for(int j = 0; j < 49; j++)
 	{
 		pq[j] = pq[j+1];
 	}
-	pq[624] = -1; // Empty
+	pq[49] = 0; // Empty
 }
 
 void push(const uint index, int nodeID)
 {
-	for(int j = 1; j < 625; j++)
+		
+	for(int j = 1; j < 50; j++)
 	{
-		if(pq[j] != -1)
-		{
-			if(nd[index].nodes[pq[j]].totalCostAccumlative > nd[index].nodes[nodeID].totalCostAccumlative )
-			{	
-				for(int t = j + 1; t < 625; t++)
+		if(nd[index].nodes[pq[j]].totalCostAccumlative > nd[index].nodes[nodeID].totalCostAccumlative )
+		{	
+			int temp = j;
+			for(int t = 49; t > 1; t--)
+			{
+				if((t) == (temp))
 				{
-					if(pq[t] != -1)
-					{
-						pq[t] = pq[t-1];
-					}
-					else
-					{
-						break;
-					}
+					break;
 				}
-				pq[j] = nodeID;
-				break;
+				pq[t] = pq[t-1];
 			}
-		}
-		else
-		{
 			pq[j] = nodeID;
 			break;
 		}
 	}
-	
+
 }
 
 void main(){ 
@@ -94,9 +86,9 @@ void main(){
 	const uint index = gl_GlobalInvocationID.x;
 
 	// Set all in the queue to -1 for reference
-	for(int j = 1; j < 625; j++)
+	for(int j = 0; j < 50; j++)
 	{
-		pq[j] = -1;
+		pq[j] = 0;
 	}
 
 	// Set up the start node for the queue
@@ -104,20 +96,17 @@ void main(){
 	nd[index].nodes[pq[0]].totalCostFromStart = 0;
 	nd[index].nodes[pq[0]].marked = 1;
 	nd[index].nodes[pq[0]].totalCostAccumlative = nd[index].nodes[pq[0]].totalCostFromStart + nd[index].nodes[pq[0]].costToGoal;
-
+	
 	// A* with queuing
 	while(queueSize() > 0)
 	{
-		if(pq[0] == nd[index].goal)
-		{
-			break;
-		}
 		// Loop each of the arcs
-		for(int t = 0; t < 4; t++)
+		for(int g = 0; g < 4; g++)
 		{
-			// Find Arc's ID of the top node in queue 1->4
-			int arc = nd[index].nodes[pq[0]].arcIDs[t];
 
+			// Find Arc's ID of the top node in queue 1->4
+			int arc = nd[index].nodes[pq[0]].arcIDs[g];
+			
 			// No neighbour
 			if(arc == -1)
 			{
@@ -128,10 +117,10 @@ void main(){
 			{
 				continue;
 			}
-		
+			
 			// Get distance of arc
 			float childDistance = nd[index].nodes[arc].costToGoal + nd[index].nodes[pq[0]].totalCostFromStart + 1;
-		
+			
 			// If the arc is worth checking:
 			// Update its totalCost, cost from start and previous ID alone this chain
 			if(childDistance < nd[index].nodes[arc].totalCostAccumlative)
@@ -140,30 +129,27 @@ void main(){
 				nd[index].nodes[arc].totalCostFromStart = nd[index].nodes[pq[0]].totalCostFromStart + 1;
 				nd[index].nodes[arc].previousID = pq[0];
 			}
-
+		
 			if(nd[index].nodes[arc].marked == 0)
 			{
+				count = arc;
 				push(index, arc);	
 				nd[index].nodes[arc].marked = 1;
 			}
 		}
 		// remove pq[0] from pq	(Action)
-		// assign new pq[0] from pq[1] (Action)
-
-
-		pop();
+		// assign new pq[0] from pq[1] (Action)	
+		pop(index);
 	}
 
 	// Make path for each invocation
 	// Setting path ID or -1 if it doesn't exist
 	int loop = nd[index].goal;
-	int count = 0;
 	for(int t = 0; t < 625; t++)
 	{
 		loop = nd[index].nodes[loop].previousID;	
 		if(loop != -1)
 		{
-			count++;
 			// Updates the corrosponding inovation
 			paths[index].pathList[t] = nd[index].nodes[loop].ID;
 		}	
@@ -171,11 +157,9 @@ void main(){
 		{
 			break;
 		}
-		
 	}	
-
 	// For testing
-	//nd[index].nodes[6].totalCostFromStart = 21;
+	//nd[index].nodes[6].totalCostFromStart = count;
 	//paths[index].pathList[2] = 31;
 	// If all went well this specific pathfind should have filled the path of ints back for the CPU to assign to the agent
 	// This program should execute 1 - > Many A* pathfinding at the same time at the speed of the slowest single execution

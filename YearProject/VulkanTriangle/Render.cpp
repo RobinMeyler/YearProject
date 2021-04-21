@@ -759,14 +759,14 @@ void Render::createCommandBuffers()
 	data2 = data + 1;
 	data3 = data + 2;
 
-	data1->start = 190;
-	data1->goal = 535;
+	data1->start = 341;
+	data1->goal = 598;
 
-	data2->start = 176;
-	data2->goal = 535;
+	data2->start = 276;
+	data2->goal = 598;
 
 	data3->start = 129;
-	data3->goal = 535;
+	data3->goal = 598;
 
 	std::copy(std::begin(nodesTemp), std::end(nodesTemp), std::begin(data1->nodes));
 	std::copy(std::begin(nodesTemp), std::end(nodesTemp), std::begin(data2->nodes));
@@ -824,7 +824,7 @@ void Render::createCommandBuffers()
 	returnPaths3 = pathsReturned + 2;
 	vkUnmapMemory(device, memoryPaths);
 
-	finalPath.push_back(535);
+	finalPath.push_back(598);
 	for (int i = 0; i < 625; i++)
 	{
 		if (returnPaths->pathList[i] != -1)
@@ -838,7 +838,7 @@ void Render::createCommandBuffers()
 	}
 	std::reverse(finalPath.begin(), finalPath.end());
 
-	finalPath2.push_back(535);
+	finalPath2.push_back(598);
 	for (int i = 0; i < 625; i++)
 	{
 		if (returnPaths2->pathList[i] != -1)
@@ -852,7 +852,7 @@ void Render::createCommandBuffers()
 	}
 	std::reverse(finalPath2.begin(), finalPath2.end());
 
-	finalPath3.push_back(535);
+	finalPath3.push_back(598);
 	for (int i = 0; i < 625; i++)
 	{
 		if (returnPaths3->pathList[i] != -1)

@@ -168,14 +168,14 @@ private:
 		// 18 is test goal
 		for (auto &nod : m_gameNodes)
 		{
-			nod->costToGoal = abs(m_gameNodes.at(535)->position.x - nod->position.x) + abs(m_gameNodes.at(535)->position.y - nod->position.y);
+			nod->costToGoal = abs(m_gameNodes.at(598)->position.x - nod->position.x) + abs(m_gameNodes.at(598)->position.y - nod->position.y);
 		}
 
-		m_start1 = new Cube(m_gameNodes.at(190)->position.x, m_gameNodes.at(190)->position.y, 2.0f);
+		m_start1 = new Cube(m_gameNodes.at(341)->position.x, m_gameNodes.at(341)->position.y, 2.0f);
 		m_start1->updateColor(glm::vec3(0.0f, 0.0f, 1.0f));
 		m_gameCubes.push_back(m_start1);
 
-		m_start2 = new Cube(m_gameNodes.at(176)->position.x, m_gameNodes.at(176)->position.y, 2.0f);
+		m_start2 = new Cube(m_gameNodes.at(276)->position.x, m_gameNodes.at(276)->position.y, 2.0f);
 		m_start2->updateColor(glm::vec3(0.0f, 0.0f, 1.0f));
 		m_gameCubes.push_back(m_start2);
 
@@ -183,7 +183,7 @@ private:
 		m_start3->updateColor(glm::vec3(0.0f, 0.0f, 1.0f));
 		m_gameCubes.push_back(m_start3);
 
-		m_goal = new Cube(m_gameNodes.at(535)->position.x, m_gameNodes.at(535)->position.y, 2.0f);
+		m_goal = new Cube(m_gameNodes.at(598)->position.x, m_gameNodes.at(598)->position.y, 2.0f);
 		m_goal->updateColor(glm::vec3(1.0f, 0.0f, 0.0f));
 		m_gameCubes.push_back(m_goal);
 
