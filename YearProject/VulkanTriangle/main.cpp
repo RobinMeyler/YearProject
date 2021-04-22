@@ -39,6 +39,7 @@ class HelloTriangleApplication {            // Seperated into a better structure
 public:
 	std::vector<Cube*> m_gameCubes;
 	std::vector<Node*> m_gameNodes;
+	std::vector<Cube*> m_AI;
 	Cube* m_start1;
 	Cube* m_start2;
 	Cube* m_start3;
@@ -91,9 +92,9 @@ private:
 		// Bottome layer
 		int w = 0;
 		int h = 0;
-		for (int i = 0; i < 150; i = i+2)
+		for (int i = 0; i < gridSize; i = i+2)
 		{
-			for(int j = 0; j < 150; j= j+2)
+			for(int j = 0; j < gridSize; j= j+2)
 			{
 				Cube* cube = new Cube( j, i, 0.0f );
 				cube->updateColor(glm::vec3(0.5f, 0.5f, 0.5f));
@@ -109,14 +110,14 @@ private:
 		int count = 0;
 		int w2 = 0;
 		int h2 = 0;
-		for (int i = 0; i < 150; i = i + 2)
+		for (int i = 0; i < gridSize; i = i + 2)
 		{
-			for (int j = 0; j < 150; j = j + 2)
+			for (int j = 0; j < gridSize; j = j + 2)
 			{
 				int rdm = rand() % 5;
 				Node* node = new Node;
 				node->passable = 1;
-				if (j == 0 || j == 148 || i == 0 || i == 148 || rdm % 5 == 3)
+				if (j == 0 || j == (gridSize-2) || i == 0 || i == (gridSize-2) || rdm % 5 == 3)
 				{
 					Cube* cube = new Cube(j, i, 2.0f);
 					//cube->updateColor(glm::vec3(0.0f, 1.0f, 0.0f));
@@ -142,20 +143,20 @@ private:
 					node->arcIDs[0] = -1;
 
 				// Right
-				if (j != 148)
+				if (j != (gridSize - 2))
 					node->arcIDs[1] = ((h2 + w2) + 1);
 				else
 					node->arcIDs[1] = -1;
 
 				// Up
 				if (i != 0)
-					node->arcIDs[2] = ((h2 + w2) - 75);
+					node->arcIDs[2] = ((h2 + w2) - (gridSize/2));
 				else
 					node->arcIDs[2] = -1;
 
 				// Down
-				if (i != 148)
-					node->arcIDs[3] = ((h2 + w2) + 75);
+				if (i != (gridSize-2))
+					node->arcIDs[3] = ((h2 + w2) + (gridSize/2));
 				else
 					node->arcIDs[3] = -1;
 				
@@ -168,23 +169,37 @@ private:
 		// 18 is test goal
 		for (auto &nod : m_gameNodes)
 		{
-			nod->costToGoal = abs(m_gameNodes.at(4066)->position.x - nod->position.x) + abs(m_gameNodes.at(4066)->position.y - nod->position.y);
+			nod->costToGoal = abs(m_gameNodes.at(goalID)->position.x - nod->position.x) + abs(m_gameNodes.at(goalID)->position.y - nod->position.y);
 		}
 
+		std::vector<int> starts;
+		for (int i = 0; i < numOfAgents; i++)
+		{
+			int oop = rand() % (gridSizeTotal -1);
+			while (m_gameNodes.at(oop)->passable == 0)
+			{
+				oop = rand() % (gridSizeTotal - 1);
+			}
+			starts.push_back(oop);
+			Cube* cub = new Cube(m_gameNodes.at(oop)->position.x, m_gameNodes.at(oop)->position.y, 2.0f);
+			cub->updateColor(glm::vec3(0.0f, 0.0f, 1.0f));
+			m_gameCubes.push_back(cub);
+		}
+		m_renderer.setStarts(starts);
 
-		m_start1 = new Cube(m_gameNodes.at(341)->position.x, m_gameNodes.at(341)->position.y, 2.0f);
-		m_start1->updateColor(glm::vec3(0.0f, 0.0f, 1.0f));
-		m_gameCubes.push_back(m_start1);
+		//m_start1 = new Cube(m_gameNodes.at(341)->position.x, m_gameNodes.at(341)->position.y, 2.0f);
+		//m_start1->updateColor(glm::vec3(0.0f, 0.0f, 1.0f));
+		//m_gameCubes.push_back(m_start1);
 
-		m_start2 = new Cube(m_gameNodes.at(1536)->position.x, m_gameNodes.at(1536)->position.y, 2.0f);
-		m_start2->updateColor(glm::vec3(0.0f, 0.0f, 1.0f));
-		m_gameCubes.push_back(m_start2);
+		//m_start2 = new Cube(m_gameNodes.at(1536)->position.x, m_gameNodes.at(1536)->position.y, 2.0f);
+		//m_start2->updateColor(glm::vec3(0.0f, 0.0f, 1.0f));
+		//m_gameCubes.push_back(m_start2);
 
-		m_start3 = new Cube(m_gameNodes.at(129)->position.x, m_gameNodes.at(129)->position.y, 2.0f);
-		m_start3->updateColor(glm::vec3(0.0f, 0.0f, 1.0f));
-		m_gameCubes.push_back(m_start3);
+		//m_start3 = new Cube(m_gameNodes.at(129)->position.x, m_gameNodes.at(129)->position.y, 2.0f);
+		//m_start3->updateColor(glm::vec3(0.0f, 0.0f, 1.0f));
+		//m_gameCubes.push_back(m_start3);
 
-		m_goal = new Cube(m_gameNodes.at(4066)->position.x, m_gameNodes.at(4066)->position.y, 2.0f);
+		m_goal = new Cube(m_gameNodes.at(goalID)->position.x, m_gameNodes.at(goalID)->position.y, 2.0f);
 		m_goal->updateColor(glm::vec3(1.0f, 0.0f, 0.0f));
 		m_gameCubes.push_back(m_goal);
 

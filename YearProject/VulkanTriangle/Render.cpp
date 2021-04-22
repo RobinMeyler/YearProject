@@ -23,8 +23,8 @@ void Render::setupVulkan(GLFWwindow* t_window)
 	createFrameBuffers();
 	createCommandPool();
 
-	createNodeBuffer(buffersNodes, 1, 3, 1);	// new
-	createPathsBuffer(buffersPaths, 1, 3, 0);	 // new
+	createNodeBuffer(buffersNodes, 1, numOfAgents, 1);	// new
+	createPathsBuffer(buffersPaths, 1, numOfAgents, 0);	 // new
 
 	for (int i = 0; i < cubes->size(); i++)
 	{
@@ -46,6 +46,12 @@ void Render::setupVulkan(GLFWwindow* t_window)
 	createComputeCommandPoolAndBuffer();						// new
 	createCommandBuffers();		// Different draw command groups set
 	createSyncObjects();		// For controlling the ordering of commands and draws ( Controls concurent actions 
+
+	nexts.resize(numOfAgents);
+	for (int i = 0; i < numOfAgents; i++)
+	{
+		nexts.at(i) = 1;
+	}
 }
 
 void Render::createVulkanInstance()
@@ -736,7 +742,7 @@ void Render::createCommandBuffers()
 	vkBeginCommandBuffer(computeCommandBuffer, &beginInfo);
 		vkCmdBindPipeline(computeCommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, pipelineCompute);
 		vkCmdBindDescriptorSets(computeCommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, pipelineLayoutCompute, 0, 1, &descriptorSetCompute, 0, nullptr);
-		vkCmdDispatch(computeCommandBuffer, 3, 1, 1);
+		vkCmdDispatch(computeCommandBuffer, numOfAgents, 1, 1);
 	if (vkEndCommandBuffer(computeCommandBuffer) != VK_SUCCESS) {
 		throw std::runtime_error("failed to end command buffer");
 	}
@@ -757,11 +763,19 @@ void Render::createCommandBuffers()
 		temp.push_back(*nod);
 	}
 
-	NodeData* data1;
-	NodeData* data2;
-	NodeData* data3;
-
-	data1 = data;
+	//NodeData* data1;
+	//NodeData* data2;
+	//NodeData* data3;
+	std::vector<NodeData*> agents;
+	agents.resize(numOfAgents);
+	for (int i = 0; i < numOfAgents; i++)
+	{
+		agents.at(i) = data + i;
+		agents.at(i)->start = starts.at(i);
+		agents.at(i)->goal = goalID;
+		std::copy(std::begin(temp), std::end(temp), std::begin(agents.at(i)->nodes));
+	}
+	/*data1 = data;
 	data2 = data + 1;
 	data3 = data + 2;
 
@@ -776,7 +790,7 @@ void Render::createCommandBuffers()
 
 	std::copy(std::begin(temp), std::end(temp), std::begin(data1->nodes));
 	std::copy(std::begin(temp), std::end(temp), std::begin(data2->nodes));
-	std::copy(std::begin(temp), std::end(temp), std::begin(data3->nodes));
+	std::copy(std::begin(temp), std::end(temp), std::begin(data3->nodes));*/
 	vkUnmapMemory(device, memoryNode);
 	// ============================================================
 
@@ -786,11 +800,19 @@ void Render::createCommandBuffers()
 		throw std::runtime_error("failed to map device memory");
 	}
 	Path fillerData;
-	for (int i = 0; i < 625; i++)
+	for (int i = 0; i < pathMax; i++)
 	{
 		fillerData.pathList[i] = -1;
 	}
-	Path* populatingPaths;
+	std::vector<Path*> praths;
+	praths.resize(numOfAgents);
+	for (int i = 0; i < numOfAgents; i++)
+	{
+		praths.at(i) = dataPaths + i;
+		std::copy(std::begin(fillerData.pathList), std::end(fillerData.pathList), std::begin(praths.at(i)->pathList));
+	}
+
+	/*Path* populatingPaths;
 	Path* populatingPaths2;
 	Path* populatingPaths3;
 
@@ -800,7 +822,7 @@ void Render::createCommandBuffers()
 
 	std::copy(std::begin(fillerData.pathList), std::end(fillerData.pathList), std::begin(populatingPaths->pathList));
 	std::copy(std::begin(fillerData.pathList), std::end(fillerData.pathList), std::begin(populatingPaths2->pathList));
-	std::copy(std::begin(fillerData.pathList), std::end(fillerData.pathList), std::begin(populatingPaths3->pathList));
+	std::copy(std::begin(fillerData.pathList), std::end(fillerData.pathList), std::begin(populatingPaths3->pathList));*/
 
 	vkUnmapMemory(device, memoryPaths);
 
@@ -816,21 +838,55 @@ void Render::createCommandBuffers()
 	if (vkMapMemory(device, memoryNode, 0, VK_WHOLE_SIZE, 0, reinterpret_cast<void**>(&data)) != VK_SUCCESS) {
 		throw std::runtime_error("failed to map device memory");
 	}
-	dataR = data;
-	dataR2 = data + 1;
-	dataR3 = data + 2;
+	backData.resize(numOfAgents);
+	for (int i = 0; i < numOfAgents; i++)
+	{
+		backData.at(i) = data + i;
+	}
+
+	//dataR = data;
+	//dataR2 = data + 1;
+	//dataR3 = data + 2;
 	vkUnmapMemory(device, memoryNode);
 
 	Path* pathsReturned = nullptr;
 	if (vkMapMemory(device, memoryPaths, 0, VK_WHOLE_SIZE, 0, reinterpret_cast<void**>(&pathsReturned)) != VK_SUCCESS) {
 		throw std::runtime_error("failed to map device memory");
 	}
-	returnPaths = pathsReturned;
-	returnPaths2 = pathsReturned + 1;
-	returnPaths3 = pathsReturned + 2;
+
+	backPaths.resize(numOfAgents);
+	for (int i = 0; i < numOfAgents; i++)
+	{
+		backPaths.at(i) = pathsReturned + i;
+	}
+
+
+	//returnPaths = pathsReturned;
+	//returnPaths2 = pathsReturned + 1;
+	//returnPaths3 = pathsReturned + 2;
 	vkUnmapMemory(device, memoryPaths);
 
-	finalPath.push_back(4066);
+	for (int j = 0; j < numOfAgents; j++)
+	{
+		std::vector<int> p;
+		p.push_back(goalID);
+		for (int i = 0; i < pathMax; i++)
+		{
+			if (backPaths.at(j)->pathList[i] != -1)
+			{
+				p.push_back(backPaths.at(j)->pathList[i]);
+			}
+			else
+			{
+				break;
+			}
+		}
+		std::reverse(p.begin(), p.end());
+		backfinalPaths.push_back(p);
+	}
+
+
+	/*finalPath.push_back(4066);
 	for (int i = 0; i < 625; i++)
 	{
 		if (returnPaths->pathList[i] != -1)
@@ -870,7 +926,7 @@ void Render::createCommandBuffers()
 			break;
 		}
 	}
-	std::reverse(finalPath3.begin(), finalPath3.end());
+	std::reverse(finalPath3.begin(), finalPath3.end());*/
 }
 
 void Render::createSyncObjects()
@@ -948,33 +1004,53 @@ void Render::draw()
 	}
 	imagesInFlight[imageIndex] = inFlightFences[currentFrame];
 
-	// Update Start Block
-	if (wait > 501 && next < finalPath.size())
-	{
-		float oop = nodes->at(finalPath.at(next))->position.x - nodes->at(finalPath.at(last))->position.x;
-		float oop2 = nodes->at(finalPath.at(next))->position.y - nodes->at(finalPath.at(last))->position.y;
-		cubes->at(cubes->size() - 4)->updatePos(oop, oop2);
-		updateBufferMemory(*cubes->at(cubes->size() - 4), vertexBuffers.at(cubes->size() - 4), vertexBufferMemorys.at(cubes->size() - 4));
-	}
-	// Update Start Block
-	if (wait > 501 && next < finalPath2.size())
-	{
-		float oop = nodes->at(finalPath2.at(next))->position.x - nodes->at(finalPath2.at(last))->position.x;
-		float oop2 = nodes->at(finalPath2.at(next))->position.y - nodes->at(finalPath2.at(last))->position.y;
-		cubes->at(cubes->size() - 3)->updatePos(oop, oop2);
-		updateBufferMemory(*cubes->at(cubes->size() - 3), vertexBuffers.at(cubes->size() - 3), vertexBufferMemorys.at(cubes->size() - 3));
-	}
-	// Update Start Block
-	if (wait > 501 && next < finalPath3.size())
+	if (wait > 250)
 	{
 		wait = 0;
-		float oop = nodes->at(finalPath3.at(next))->position.x - nodes->at(finalPath3.at(last))->position.x;
-		float oop2 = nodes->at(finalPath3.at(next))->position.y - nodes->at(finalPath3.at(last))->position.y;
-		cubes->at(cubes->size() - 2)->updatePos(oop, oop2);
-		updateBufferMemory(*cubes->at(cubes->size() - 2), vertexBuffers.at(cubes->size() - 2), vertexBufferMemorys.at(cubes->size() - 2));
+		for (int i = 0; i < numOfAgents; i++)
+		{
+			if (next < backfinalPaths.at(i).size())
+			{
+				float oop = nodes->at(backfinalPaths.at(i).at(next))->position.x - nodes->at(backfinalPaths.at(i).at(last))->position.x;
+				float oop2 = nodes->at(backfinalPaths.at(i).at(next))->position.y - nodes->at(backfinalPaths.at(i).at(last))->position.y;
+				cubes->at(cubes->size() - ((numOfAgents + 1) - i))->updatePos(oop, oop2);
+				updateBufferMemory(*cubes->at(cubes->size() - ((numOfAgents + 1) - i)), vertexBuffers.at(cubes->size() - ((numOfAgents + 1) - i)), vertexBufferMemorys.at(cubes->size() - ((numOfAgents + 1) - i)));
+			}
+		}
 		last = next;
 		next++;
+
 	}
+
+
+
+	//// Update Start Block
+	//if (wait > 501 && next < finalPath.size())
+	//{
+	//	float oop = nodes->at(finalPath.at(next))->position.x - nodes->at(finalPath.at(last))->position.x;
+	//	float oop2 = nodes->at(finalPath.at(next))->position.y - nodes->at(finalPath.at(last))->position.y;
+	//	cubes->at(cubes->size() - 4)->updatePos(oop, oop2);
+	//	updateBufferMemory(*cubes->at(cubes->size() - 4), vertexBuffers.at(cubes->size() - 4), vertexBufferMemorys.at(cubes->size() - 4));
+	//}
+	//// Update Start Block
+	//if (wait > 501 && next < finalPath2.size())
+	//{
+	//	float oop = nodes->at(finalPath2.at(next))->position.x - nodes->at(finalPath2.at(last))->position.x;
+	//	float oop2 = nodes->at(finalPath2.at(next))->position.y - nodes->at(finalPath2.at(last))->position.y;
+	//	cubes->at(cubes->size() - 3)->updatePos(oop, oop2);
+	//	updateBufferMemory(*cubes->at(cubes->size() - 3), vertexBuffers.at(cubes->size() - 3), vertexBufferMemorys.at(cubes->size() - 3));
+	//}
+	//// Update Start Block
+	//if (wait > 501 && next < finalPath3.size())
+	//{
+	//	wait = 0;
+	//	float oop = nodes->at(finalPath3.at(next))->position.x - nodes->at(finalPath3.at(last))->position.x;
+	//	float oop2 = nodes->at(finalPath3.at(next))->position.y - nodes->at(finalPath3.at(last))->position.y;
+	//	cubes->at(cubes->size() - 2)->updatePos(oop, oop2);
+	//	updateBufferMemory(*cubes->at(cubes->size() - 2), vertexBuffers.at(cubes->size() - 2), vertexBufferMemorys.at(cubes->size() - 2));
+	//	last = next;
+	//	next++;
+	//}
 	wait++;
 	std::cout << wait << std::endl;
 	updateUniformBuffer(imageIndex);
@@ -1253,6 +1329,11 @@ void Render::addNodes(std::vector<Node*> *t_nodes)
 	nodes = t_nodes;
 }
 
+void Render::setStarts(std::vector<int> t_starts)
+{
+	starts = t_starts;
+}
+
 void Render::updateUniformBuffer(uint32_t currentImage)
 {
 	static auto startTime = std::chrono::high_resolution_clock::now();
@@ -1261,7 +1342,7 @@ void Render::updateUniformBuffer(uint32_t currentImage)
 
 	UniformBufferObject ubo{};
 	ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-	ubo.view = glm::lookAt(glm::vec3(75.0f, 75.0f, 200.0f), glm::vec3(75.0f, 75.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	ubo.view = glm::lookAt(glm::vec3((float)(gridSize/2), -(float)(gridSize / 2), 100.0f/*(float)(gridSize * 1.5f)*/), glm::vec3((float)(gridSize / 2), (float)(gridSize / 2), 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 	ubo.proj = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 1000.0f);
 	ubo.proj[1][1] *= -1;
 

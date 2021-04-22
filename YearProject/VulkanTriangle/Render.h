@@ -90,6 +90,7 @@ public:
 	void allocateDescriptorSets(const std::vector<VkBuffer> &buffers);
 	void createComputeCommandPoolAndBuffer();
 	void addNodes(std::vector<Node*> *t_nodes);
+	void setStarts(std::vector<int> t_starts);
 
 	void addVBOs(std::vector<Cube*> *t_cubes);
 	bool isDeviceSuitable(VkPhysicalDevice device);
@@ -166,6 +167,12 @@ private:
 	Path* returnPaths;
 	Path* returnPaths2;
 	Path* returnPaths3;
+	std::vector<Path*> backPaths;
+	std::vector<NodeData*> backData;
+	std::vector<std::vector<int>> backfinalPaths;
+	std::vector<int> starts;
+	std::vector<int> nexts;
+
 	NodeData* dataR;
 	NodeData* dataR2;
 	NodeData* dataR3;

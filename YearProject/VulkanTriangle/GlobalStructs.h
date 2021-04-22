@@ -31,10 +31,17 @@ struct NodeData
 {
 	int start;		// Start ID
 	int goal;		// Goal ID
-	Node nodes[5625];
+	Node nodes[15626];
 };
 
 struct Path
 {
 	int pathList[625];
 };
+
+
+const int numOfAgents = 200;
+const int gridSize = 250;
+const int gridSizeTotal = 15626;
+const int goalID = 4066;
+const int pathMax = 625;
