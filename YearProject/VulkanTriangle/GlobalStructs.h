@@ -31,7 +31,7 @@ struct NodeData
 {
 	int start;		// Start ID
 	int goal;		// Goal ID
-	Node nodes[625];
+	Node nodes[5625];
 };
 
 struct Path

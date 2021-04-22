@@ -745,10 +745,16 @@ void Render::createCommandBuffers()
 	if (vkMapMemory(device, memoryNode, 0, VK_WHOLE_SIZE, 0, reinterpret_cast<void**>(&data)) != VK_SUCCESS) {
 		throw std::runtime_error("failed to map device memory");
 	}
-	Node nodesTemp[625];
+	/*Node nodesTemp[5625];
 	for (int i = 0; i < 625; i++)
 	{
 		nodesTemp[i] = *nodes->at(i);
+	}*/
+	std::vector<Node> temp;
+
+	for (auto& nod : *nodes)
+	{
+		temp.push_back(*nod);
 	}
 
 	NodeData* data1;
@@ -760,17 +766,17 @@ void Render::createCommandBuffers()
 	data3 = data + 2;
 
 	data1->start = 341;
-	data1->goal = 598;
+	data1->goal = 4066;
 
-	data2->start = 276;
-	data2->goal = 598;
+	data2->start = 1536;
+	data2->goal = 4066;
 
 	data3->start = 129;
-	data3->goal = 598;
+	data3->goal = 4066;
 
-	std::copy(std::begin(nodesTemp), std::end(nodesTemp), std::begin(data1->nodes));
-	std::copy(std::begin(nodesTemp), std::end(nodesTemp), std::begin(data2->nodes));
-	std::copy(std::begin(nodesTemp), std::end(nodesTemp), std::begin(data3->nodes));
+	std::copy(std::begin(temp), std::end(temp), std::begin(data1->nodes));
+	std::copy(std::begin(temp), std::end(temp), std::begin(data2->nodes));
+	std::copy(std::begin(temp), std::end(temp), std::begin(data3->nodes));
 	vkUnmapMemory(device, memoryNode);
 	// ============================================================
 
@@ -824,7 +830,7 @@ void Render::createCommandBuffers()
 	returnPaths3 = pathsReturned + 2;
 	vkUnmapMemory(device, memoryPaths);
 
-	finalPath.push_back(598);
+	finalPath.push_back(4066);
 	for (int i = 0; i < 625; i++)
 	{
 		if (returnPaths->pathList[i] != -1)
@@ -838,7 +844,7 @@ void Render::createCommandBuffers()
 	}
 	std::reverse(finalPath.begin(), finalPath.end());
 
-	finalPath2.push_back(598);
+	finalPath2.push_back(4066);
 	for (int i = 0; i < 625; i++)
 	{
 		if (returnPaths2->pathList[i] != -1)
@@ -852,7 +858,7 @@ void Render::createCommandBuffers()
 	}
 	std::reverse(finalPath2.begin(), finalPath2.end());
 
-	finalPath3.push_back(598);
+	finalPath3.push_back(4066);
 	for (int i = 0; i < 625; i++)
 	{
 		if (returnPaths3->pathList[i] != -1)
@@ -943,7 +949,7 @@ void Render::draw()
 	imagesInFlight[imageIndex] = inFlightFences[currentFrame];
 
 	// Update Start Block
-	if (wait > 500 && next < finalPath.size())
+	if (wait > 501 && next < finalPath.size())
 	{
 		float oop = nodes->at(finalPath.at(next))->position.x - nodes->at(finalPath.at(last))->position.x;
 		float oop2 = nodes->at(finalPath.at(next))->position.y - nodes->at(finalPath.at(last))->position.y;
@@ -951,7 +957,7 @@ void Render::draw()
 		updateBufferMemory(*cubes->at(cubes->size() - 4), vertexBuffers.at(cubes->size() - 4), vertexBufferMemorys.at(cubes->size() - 4));
 	}
 	// Update Start Block
-	if (wait > 500 && next < finalPath2.size())
+	if (wait > 501 && next < finalPath2.size())
 	{
 		float oop = nodes->at(finalPath2.at(next))->position.x - nodes->at(finalPath2.at(last))->position.x;
 		float oop2 = nodes->at(finalPath2.at(next))->position.y - nodes->at(finalPath2.at(last))->position.y;
@@ -959,7 +965,7 @@ void Render::draw()
 		updateBufferMemory(*cubes->at(cubes->size() - 3), vertexBuffers.at(cubes->size() - 3), vertexBufferMemorys.at(cubes->size() - 3));
 	}
 	// Update Start Block
-	if (wait > 500 && next < finalPath3.size())
+	if (wait > 501 && next < finalPath3.size())
 	{
 		wait = 0;
 		float oop = nodes->at(finalPath3.at(next))->position.x - nodes->at(finalPath3.at(last))->position.x;
@@ -1255,7 +1261,7 @@ void Render::updateUniformBuffer(uint32_t currentImage)
 
 	UniformBufferObject ubo{};
 	ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-	ubo.view = glm::lookAt(glm::vec3(25.0f, 25.0f, 75.0f), glm::vec3(25.0f, 25.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	ubo.view = glm::lookAt(glm::vec3(75.0f, 75.0f, 200.0f), glm::vec3(75.0f, 75.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 	ubo.proj = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 1000.0f);
 	ubo.proj[1][1] *= -1;
 

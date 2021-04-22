@@ -18,7 +18,7 @@ struct Node{
 struct NodeData{
 	int start;		// Start ID
 	int goal;		// Goal ID
-	Node nodes[625];
+	Node nodes[5625];
 };
 
 struct Path{
@@ -31,13 +31,13 @@ layout(std430, set=0, binding=1) buffer outR { Path paths[]; };
 // layout(std430, set=0, binding=1) buffer inB { int oop[]; };
 // layout (binding = 3) uniform Node nodes[20];					// All grid nodes
 
-int pq[50];
+int pq[150];
 int count = 0;
 int leave = 0;
 int queueSize()
 {
 	int size = 0;
-	for(int s = 0; s < 50; s++)
+	for(int s = 0; s < 150; s++)
 	{
 		if(pq[s] != 0)
 		{
@@ -51,34 +51,44 @@ void pop(const uint index)
 {
 	// Alternative would be to move the memory pointer over 4 bytes
 	// Shift all of the indexes down one and delete the last
-	for(int j = 0; j < 49; j++)
+
+	for(int j = 0; j < 149; j++)
 	{
 		pq[j] = pq[j+1];
 	}
-	pq[49] = 0; // Empty
+	pq[149] = 0; // Empty
 }
 
 void push(const uint index, int nodeID)
-{
-		
-	for(int j = 1; j < 50; j++)
+{	
+	leave = nodeID;
+	for(int j = 1; j < 150; j++)
 	{
-		if(nd[index].nodes[pq[j]].totalCostAccumlative > nd[index].nodes[nodeID].totalCostAccumlative )
-		{	
-			int temp = j;
-			for(int t = 49; t > 1; t--)
-			{
-				if((t) == (temp))
+		if(pq[j] != -1)
+		{
+			if(nd[index].nodes[pq[j]].totalCostAccumlative > nd[index].nodes[nodeID].totalCostAccumlative )
+			{	
+				int temp = j;
+				for(int t = 149; t > 1; t--)
 				{
-					break;
+					if((t) == (temp))
+					{
+						break;
+					}
+					pq[t] = pq[t-1];
 				}
-				pq[t] = pq[t-1];
+				pq[j] = nodeID;
+				return;
 			}
+		}
+		else
+		{
 			pq[j] = nodeID;
-			break;
+			return;
 		}
 	}
-
+	pq[149] = nodeID;
+	return;
 }
 
 void main(){ 
@@ -86,9 +96,9 @@ void main(){
 	const uint index = gl_GlobalInvocationID.x;
 
 	// Set all in the queue to -1 for reference
-	for(int j = 0; j < 50; j++)
+	for(int j = 0; j < 150; j++)
 	{
-		pq[j] = 0;
+		pq[j] = -1;
 	}
 
 	// Set up the start node for the queue
@@ -100,10 +110,10 @@ void main(){
 	// A* with queuing
 	while(queueSize() > 0)
 	{
+		count++;
 		// Loop each of the arcs
 		for(int g = 0; g < 4; g++)
 		{
-
 			// Find Arc's ID of the top node in queue 1->4
 			int arc = nd[index].nodes[pq[0]].arcIDs[g];
 			
@@ -119,20 +129,19 @@ void main(){
 			}
 			
 			// Get distance of arc
-			float childDistance = nd[index].nodes[arc].costToGoal + nd[index].nodes[pq[0]].totalCostFromStart + 1;
+			float childDistance = nd[index].nodes[arc].costToGoal + nd[index].nodes[pq[0]].totalCostFromStart + 2;
 			
 			// If the arc is worth checking:
 			// Update its totalCost, cost from start and previous ID alone this chain
 			if(childDistance < nd[index].nodes[arc].totalCostAccumlative)
 			{
 				nd[index].nodes[arc].totalCostAccumlative = childDistance;
-				nd[index].nodes[arc].totalCostFromStart = nd[index].nodes[pq[0]].totalCostFromStart + 1;
+				nd[index].nodes[arc].totalCostFromStart = nd[index].nodes[pq[0]].totalCostFromStart + 2;
 				nd[index].nodes[arc].previousID = pq[0];
 			}
 		
 			if(nd[index].nodes[arc].marked == 0)
 			{
-				count = arc;
 				push(index, arc);	
 				nd[index].nodes[arc].marked = 1;
 			}
@@ -147,7 +156,7 @@ void main(){
 	int loop = nd[index].goal;
 	for(int t = 0; t < 625; t++)
 	{
-		loop = nd[index].nodes[loop].previousID;	
+		loop = nd[index].nodes[loop].previousID;
 		if(loop != -1)
 		{
 			// Updates the corrosponding inovation
@@ -158,6 +167,8 @@ void main(){
 			break;
 		}
 	}	
+	nd[index].nodes[0].totalCostFromStart = count;
+
 	// For testing
 	//nd[index].nodes[6].totalCostFromStart = count;
 	//paths[index].pathList[2] = 31;
