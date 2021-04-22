@@ -34,12 +34,17 @@ const bool enableValidationLayers = true;
 #endif
 
 
+const float CAMERA_CHANGE = 0.1f;
 
 class HelloTriangleApplication {            // Seperated into a better structure later
 public:
+	std::vector<Cube*> m_gameCubesMoveable;
 	std::vector<Cube*> m_gameCubes;
 	std::vector<Node*> m_gameNodes;
 	std::vector<Cube*> m_AI;
+	
+	int timer = 0;
+
 	Cube* m_start1;
 	Cube* m_start2;
 	Cube* m_start3;
@@ -73,7 +78,59 @@ private:
 	{
 		while (!glfwWindowShouldClose(window)) {
 			glfwPollEvents();
-
+			if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS && timer > 1000)
+			{
+				timer = 0;
+				m_renderer.doPathfinding = true;
+			}
+			if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS && timer > 1000 && m_renderer.update == true)
+			{
+				timer = 0;
+				m_renderer.resetAgents();
+				m_renderer.update = false;
+			}
+			if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS && timer > 10 )
+			{
+				timer = 0;
+				m_renderer.updateCameraPosition(glm::vec3(CAMERA_CHANGE, 0.0f, 0.0f), 0);
+			}
+			if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS && timer > 10)
+			{
+				timer = 0;
+				m_renderer.updateCameraPosition(glm::vec3(0.0f, CAMERA_CHANGE, 0.0f), 0);
+			}
+			if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS && timer > 10)
+			{
+				timer = 0;
+				m_renderer.updateCameraPosition(glm::vec3(0.0f, -CAMERA_CHANGE, 0.0f), 0);
+			}
+			if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS && timer > 10 )
+			{
+				timer = 0;
+				m_renderer.updateCameraPosition(glm::vec3(-CAMERA_CHANGE, 0.0f, 0.0f), 0);
+			}
+			if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS && timer > 10)
+			{
+				timer = 0;
+				m_renderer.updateCameraPosition(glm::vec3(0.0f, 0.0f, -CAMERA_CHANGE*2), 0);
+			}
+			if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS && timer > 10)
+			{
+				timer = 0;
+				m_renderer.updateCameraPosition(glm::vec3(0.0f, 0.0f, CAMERA_CHANGE*2), 0);
+			}
+			// Tild up
+			if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS && timer > 10)
+			{
+				timer = 0;
+				m_renderer.updateCameraPosition(glm::vec3(0.0f, 1.0f, 0.0f), 2);
+			}
+			if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS && timer > 10)
+			{
+				timer = 0;
+				m_renderer.updateCameraPosition(glm::vec3(0.0f, -1.0f, 0.0f), 2);
+			}
+			timer++;
 			//m_start1->updatePos(0.001f);
 
 			m_renderer.draw();

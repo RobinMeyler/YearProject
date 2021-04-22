@@ -110,10 +110,15 @@ public:
 	void recreateSwapchain();
 	void cleanupSwapChain();
 	void updateBufferMemory(Cube& t_cube, VkBuffer& t_vertexbuffer, VkDeviceMemory& t_vertexbuffermemory);
-
+	void resetAgents();
+	void updateCameraPosition(glm::vec3 t_changeInCameraPosition, int t_specify);
 	std::vector<Cube*>* cubes;
+
 	std::vector<Node*>* nodes;
 	bool framebufferResized = false;
+
+	bool doPathfinding = false;
+	bool update = false;
 private:
 
 	GLFWwindow* window;                     // Main window
@@ -173,6 +178,8 @@ private:
 	std::vector<int> starts;
 	std::vector<int> nexts;
 
+	glm::vec3 eye = glm::vec3((float)(gridSize / 2), (float)(gridSize / 2), 100.0f/*(float)(gridSize * 1.5f)*/);
+	glm::vec3 lookAT = glm::vec3((float)(gridSize / 2), (float)(gridSize / 2), 0.0f);
 	NodeData* dataR;
 	NodeData* dataR2;
 	NodeData* dataR3;

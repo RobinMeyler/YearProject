@@ -546,9 +546,10 @@ void Render::creatBufferObjects(int t_count)
 	}
 }
 
-void Render::addVBOs(std::vector<Cube*>* t_cubes)
+void Render::addVBOs(std::vector<Cube*>* t_cubesMoveable/*, std::vector<Cube*>* t_cubesUnmoved*/)
 {
-	cubes = t_cubes;
+	//cubesMoveable = t_cubesMoveable;
+	cubes = t_cubesMoveable;
 }
 
 void Render::createVertexBuffer(Cube& t_cube, VkBuffer& t_vertexbuffer, VkDeviceMemory& t_vertexbuffermemory)
@@ -575,6 +576,38 @@ void Render::updateBufferMemory(Cube& t_cube, VkBuffer& t_vertexbuffer, VkDevice
 	vkUnmapMemory(device, stagingBufferMemory);
 
 	copyBuffer(stagingBuffer, t_vertexbuffer, bufferSize);
+}
+
+void Render::resetAgents()
+{
+	for (int i = 0; i < numOfAgents; i++)
+	{
+		float oop = nodes->at(backfinalPaths.at(i).at(0))->position.x - nodes->at(backfinalPaths.at(i).at(backfinalPaths.at(i).size() -1))->position.x;
+		float oop2 = nodes->at(backfinalPaths.at(i).at(0))->position.y - nodes->at(backfinalPaths.at(i).at(backfinalPaths.at(i).size() - 1))->position.y;
+		cubes->at(cubes->size() - ((numOfAgents + 1) - i))->updatePos(oop, oop2);
+		updateBufferMemory(*cubes->at(cubes->size() - ((numOfAgents + 1) - i)), vertexBuffers.at(cubes->size() - ((numOfAgents + 1) - i)), vertexBufferMemorys.at(cubes->size() - ((numOfAgents + 1) - i)));
+		
+	}
+	next = 1;
+	last = 0;
+}
+
+void Render::updateCameraPosition(glm::vec3 t_changeInCameraPosition, int t_specify)
+{
+	if (t_specify == 0)
+	{
+		eye += t_changeInCameraPosition;
+		lookAT += t_changeInCameraPosition;
+	}
+	else if (t_specify == 1)
+	{
+		eye += t_changeInCameraPosition;
+	}
+	else
+	{
+		lookAT += t_changeInCameraPosition;
+	}
+	
 }
 
 void Render::createIndexBuffer(Cube& t_cube, VkBuffer& t_vertexbuffer, VkDeviceMemory& t_vertexbuffermemory)
@@ -826,64 +859,64 @@ void Render::createCommandBuffers()
 
 	vkUnmapMemory(device, memoryPaths);
 
-	VkSubmitInfo submitInfo2 = {};
-	submitInfo2.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-	submitInfo2.commandBufferCount = 1;
-	submitInfo2.pCommandBuffers = &computeCommandBuffer;
-	vkQueueSubmit(graphicsQueue, 1, &submitInfo2, VK_NULL_HANDLE);
-	// but we can simply wait for all the work to be done
-	vkQueueWaitIdle(graphicsQueue);
+	//VkSubmitInfo submitInfo2 = {};
+	//submitInfo2.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	//submitInfo2.commandBufferCount = 1;
+	//submitInfo2.pCommandBuffers = &computeCommandBuffer;
+	//vkQueueSubmit(graphicsQueue, 1, &submitInfo2, VK_NULL_HANDLE);
+	//// but we can simply wait for all the work to be done
+	//vkQueueWaitIdle(graphicsQueue);
 
-	data = nullptr;
-	if (vkMapMemory(device, memoryNode, 0, VK_WHOLE_SIZE, 0, reinterpret_cast<void**>(&data)) != VK_SUCCESS) {
-		throw std::runtime_error("failed to map device memory");
-	}
-	backData.resize(numOfAgents);
-	for (int i = 0; i < numOfAgents; i++)
-	{
-		backData.at(i) = data + i;
-	}
+	//data = nullptr;
+	//if (vkMapMemory(device, memoryNode, 0, VK_WHOLE_SIZE, 0, reinterpret_cast<void**>(&data)) != VK_SUCCESS) {
+	//	throw std::runtime_error("failed to map device memory");
+	//}
+	//backData.resize(numOfAgents);
+	//for (int i = 0; i < numOfAgents; i++)
+	//{
+	//	backData.at(i) = data + i;
+	//}
 
-	//dataR = data;
-	//dataR2 = data + 1;
-	//dataR3 = data + 2;
-	vkUnmapMemory(device, memoryNode);
+	////dataR = data;
+	////dataR2 = data + 1;
+	////dataR3 = data + 2;
+	//vkUnmapMemory(device, memoryNode);
 
-	Path* pathsReturned = nullptr;
-	if (vkMapMemory(device, memoryPaths, 0, VK_WHOLE_SIZE, 0, reinterpret_cast<void**>(&pathsReturned)) != VK_SUCCESS) {
-		throw std::runtime_error("failed to map device memory");
-	}
+	//Path* pathsReturned = nullptr;
+	//if (vkMapMemory(device, memoryPaths, 0, VK_WHOLE_SIZE, 0, reinterpret_cast<void**>(&pathsReturned)) != VK_SUCCESS) {
+	//	throw std::runtime_error("failed to map device memory");
+	//}
 
-	backPaths.resize(numOfAgents);
-	for (int i = 0; i < numOfAgents; i++)
-	{
-		backPaths.at(i) = pathsReturned + i;
-	}
+	//backPaths.resize(numOfAgents);
+	//for (int i = 0; i < numOfAgents; i++)
+	//{
+	//	backPaths.at(i) = pathsReturned + i;
+	//}
 
 
-	//returnPaths = pathsReturned;
-	//returnPaths2 = pathsReturned + 1;
-	//returnPaths3 = pathsReturned + 2;
-	vkUnmapMemory(device, memoryPaths);
+	////returnPaths = pathsReturned;
+	////returnPaths2 = pathsReturned + 1;
+	////returnPaths3 = pathsReturned + 2;
+	//vkUnmapMemory(device, memoryPaths);
 
-	for (int j = 0; j < numOfAgents; j++)
-	{
-		std::vector<int> p;
-		p.push_back(goalID);
-		for (int i = 0; i < pathMax; i++)
-		{
-			if (backPaths.at(j)->pathList[i] != -1)
-			{
-				p.push_back(backPaths.at(j)->pathList[i]);
-			}
-			else
-			{
-				break;
-			}
-		}
-		std::reverse(p.begin(), p.end());
-		backfinalPaths.push_back(p);
-	}
+	//for (int j = 0; j < numOfAgents; j++)
+	//{
+	//	std::vector<int> p;
+	//	p.push_back(goalID);
+	//	for (int i = 0; i < pathMax; i++)
+	//	{
+	//		if (backPaths.at(j)->pathList[i] != -1)
+	//		{
+	//			p.push_back(backPaths.at(j)->pathList[i]);
+	//		}
+	//		else
+	//		{
+	//			break;
+	//		}
+	//	}
+	//	std::reverse(p.begin(), p.end());
+	//	backfinalPaths.push_back(p);
+	//}
 
 
 	/*finalPath.push_back(4066);
@@ -983,6 +1016,70 @@ void Render::draw()
 	//returnPaths3 = pathsReturned + 2;
 	//vkUnmapMemory(device, memoryPaths);
 
+	if (doPathfinding == true)
+	{
+		doPathfinding = false;
+		update = true;
+		VkSubmitInfo submitInfo2 = {};
+		submitInfo2.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+		submitInfo2.commandBufferCount = 1;
+		submitInfo2.pCommandBuffers = &computeCommandBuffer;
+		vkQueueSubmit(graphicsQueue, 1, &submitInfo2, VK_NULL_HANDLE);
+		// but we can simply wait for all the work to be done
+		vkQueueWaitIdle(graphicsQueue);
+
+		NodeData* data = nullptr;
+		if (vkMapMemory(device, memoryNode, 0, VK_WHOLE_SIZE, 0, reinterpret_cast<void**>(&data)) != VK_SUCCESS) {
+			throw std::runtime_error("failed to map device memory");
+		}
+		backData.resize(numOfAgents);
+		for (int i = 0; i < numOfAgents; i++)
+		{
+			backData.at(i) = data + i;
+		}
+
+		//dataR = data;
+		//dataR2 = data + 1;
+		//dataR3 = data + 2;
+		vkUnmapMemory(device, memoryNode);
+
+		Path* pathsReturned = nullptr;
+		if (vkMapMemory(device, memoryPaths, 0, VK_WHOLE_SIZE, 0, reinterpret_cast<void**>(&pathsReturned)) != VK_SUCCESS) {
+			throw std::runtime_error("failed to map device memory");
+		}
+
+		backPaths.resize(numOfAgents);
+		for (int i = 0; i < numOfAgents; i++)
+		{
+			backPaths.at(i) = pathsReturned + i;
+		}
+
+
+		//returnPaths = pathsReturned;
+		//returnPaths2 = pathsReturned + 1;
+		//returnPaths3 = pathsReturned + 2;
+		vkUnmapMemory(device, memoryPaths);
+
+		for (int j = 0; j < numOfAgents; j++)
+		{
+			std::vector<int> p;
+			p.push_back(goalID);
+			for (int i = 0; i < pathMax; i++)
+			{
+				if (backPaths.at(j)->pathList[i] != -1)
+				{
+					p.push_back(backPaths.at(j)->pathList[i]);
+				}
+				else
+				{
+					break;
+				}
+			}
+			std::reverse(p.begin(), p.end());
+			backfinalPaths.push_back(p);
+		}
+
+	}
 
 
 
@@ -1004,7 +1101,7 @@ void Render::draw()
 	}
 	imagesInFlight[imageIndex] = inFlightFences[currentFrame];
 
-	if (wait > 250)
+	if (wait > 500 && update == true)
 	{
 		wait = 0;
 		for (int i = 0; i < numOfAgents; i++)
@@ -1023,7 +1120,7 @@ void Render::draw()
 	}
 
 
-
+	wait++;
 	//// Update Start Block
 	//if (wait > 501 && next < finalPath.size())
 	//{
@@ -1051,8 +1148,7 @@ void Render::draw()
 	//	last = next;
 	//	next++;
 	//}
-	wait++;
-	std::cout << wait << std::endl;
+
 	updateUniformBuffer(imageIndex);
 
 	VkSubmitInfo submitInfo = {};
@@ -1342,7 +1438,7 @@ void Render::updateUniformBuffer(uint32_t currentImage)
 
 	UniformBufferObject ubo{};
 	ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-	ubo.view = glm::lookAt(glm::vec3((float)(gridSize/2), -(float)(gridSize / 2), 100.0f/*(float)(gridSize * 1.5f)*/), glm::vec3((float)(gridSize / 2), (float)(gridSize / 2), 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	ubo.view = glm::lookAt(eye, lookAT, glm::vec3(0.0f, 1.0f, 0.0f));
 	ubo.proj = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 1000.0f);
 	ubo.proj[1][1] *= -1;
 
