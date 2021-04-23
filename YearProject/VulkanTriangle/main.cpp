@@ -34,7 +34,7 @@ const bool enableValidationLayers = true;
 #endif
 
 
-const float CAMERA_CHANGE = 0.1f;
+const float CAMERA_CHANGE = 1.0f;
 
 class HelloTriangleApplication {            // Seperated into a better structure later
 public:
@@ -55,8 +55,8 @@ public:
 		setupCubeMap();
 		m_renderer.addVBOs(&m_gameCubes);
 		m_renderer.setupVulkan(window);
-
 		mainLoop();                         // Loop
+
 		cleanup();                          // Clearing memory off of the heap
 	}
 	bool framebufferResized = false;
@@ -123,16 +123,24 @@ private:
 			if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS && timer > 10)
 			{
 				timer = 0;
-				m_renderer.updateCameraPosition(glm::vec3(0.0f, 1.0f, 0.0f), 2);
+				m_renderer.updateCameraPosition(glm::vec3(0.0f, CAMERA_CHANGE*2, 0.0f), 2);
 			}
 			if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS && timer > 10)
 			{
 				timer = 0;
-				m_renderer.updateCameraPosition(glm::vec3(0.0f, -1.0f, 0.0f), 2);
+				m_renderer.updateCameraPosition(glm::vec3(0.0f, -CAMERA_CHANGE*2, 0.0f), 2);
+			}
+			if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS && timer > 10)
+			{
+				timer = 0;
+				m_renderer.speed -= 2;
+			}
+			if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS && timer > 10)
+			{
+				timer = 0;
+				m_renderer.speed += 2;
 			}
 			timer++;
-			//m_start1->updatePos(0.001f);
-
 			m_renderer.draw();
 		}
 	}
@@ -171,10 +179,10 @@ private:
 		{
 			for (int j = 0; j < gridSize; j = j + 2)
 			{
-				int rdm = rand() % 5;
+				int rdm = rand() % 10;
 				Node* node = new Node;
 				node->passable = 1;
-				if (j == 0 || j == (gridSize-2) || i == 0 || i == (gridSize-2) || rdm % 5 == 3)
+				if (j == 0 || j == (gridSize-2) || i == 0 || i == (gridSize-2) || rdm % 10 == 3)
 				{
 					Cube* cube = new Cube(j, i, 2.0f);
 					//cube->updateColor(glm::vec3(0.0f, 1.0f, 0.0f));
@@ -229,13 +237,17 @@ private:
 			nod->costToGoal = abs(m_gameNodes.at(goalID)->position.x - nod->position.x) + abs(m_gameNodes.at(goalID)->position.y - nod->position.y);
 		}
 
+		std::random_device rd;
+		std::mt19937 gen(rd());
+		std::uniform_real_distribution<> dis(0.0, gridSizeTotal-1);
+
 		std::vector<int> starts;
 		for (int i = 0; i < numOfAgents; i++)
 		{
-			int oop = rand() % (gridSizeTotal -1);
+			long int oop = dis(gen);
 			while (m_gameNodes.at(oop)->passable == 0)
 			{
-				oop = rand() % (gridSizeTotal - 1);
+				oop = dis(gen);
 			}
 			starts.push_back(oop);
 			Cube* cub = new Cube(m_gameNodes.at(oop)->position.x, m_gameNodes.at(oop)->position.y, 2.0f);

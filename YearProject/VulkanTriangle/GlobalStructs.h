@@ -4,7 +4,8 @@
 #define GLM_FORCE_DEFAULT_ALIGNED_GENTYPES
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/glm.hpp>
-
+#include <chrono>
+#include <random>
 
 struct UniformBufferObject {
 	alignas(16)glm::mat4 model;
@@ -27,21 +28,26 @@ struct Node
 };
 
 
+const int numOfAgents = 200;
+const int gridSize = 1000;
+const int goalID = 125751;
+const int pathMax = 1000;
+
+
+const int gridSizeTotal = (gridSize/2) * (gridSize / 2);
+
+
 struct NodeData
 {
 	int start;		// Start ID
 	int goal;		// Goal ID
-	Node nodes[40000];
+	Node nodes[gridSizeTotal];
 };
 
 struct Path
 {
-	int pathList[625];
+	int pathList[pathMax];
 };
 
 
-const int numOfAgents = 200;
-const int gridSize = 400;
-const int gridSizeTotal = 40000;
-const int goalID = 20100;
-const int pathMax = 625;
+

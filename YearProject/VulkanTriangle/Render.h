@@ -119,6 +119,7 @@ public:
 
 	bool doPathfinding = false;
 	bool update = false;
+	int speed = 250;
 private:
 
 	GLFWwindow* window;                     // Main window
@@ -178,7 +179,7 @@ private:
 	std::vector<int> starts;
 	std::vector<int> nexts;
 
-	glm::vec3 eye = glm::vec3((float)(gridSize / 2), (float)(gridSize / 2), 100.0f/*(float)(gridSize * 1.5f)*/);
+	glm::vec3 eye = glm::vec3((float)(gridSize / 2), (float)(gridSize / 2), 400.0f/*(float)(gridSize * 1.5f)*/);
 	glm::vec3 lookAT = glm::vec3((float)(gridSize / 2), (float)(gridSize / 2), 0.0f);
 	NodeData* dataR;
 	NodeData* dataR2;

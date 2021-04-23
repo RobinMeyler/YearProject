@@ -580,6 +580,32 @@ void Render::updateBufferMemory(Cube& t_cube, VkBuffer& t_vertexbuffer, VkDevice
 
 void Render::resetAgents()
 {
+	//std::random_device rd;
+	//std::mt19937 gen(rd());
+	//std::uniform_real_distribution<> dis(0.0, gridSizeTotal - 1);
+
+	//std::vector<int> starts;
+	//for (int i = 0; i < numOfAgents; i++)
+	//{
+	//	long int oop = dis(gen);
+	//	while (nodes->at(oop)->passable == 0)
+	//	{
+	//		oop = dis(gen);
+	//	}
+	//	starts.push_back(oop);
+
+	//	float oop3 = nodes->at(oop)->position.x - nodes->at(backfinalPaths.at(i).at(backfinalPaths.at(i).size() - 1))->position.x;
+	//	float oop2 = nodes->at(oop)->position.y - nodes->at(backfinalPaths.at(i).at(backfinalPaths.at(i).size() - 1))->position.y;
+	//	cubes->at(cubes->size() - ((numOfAgents + 1) - i))->updatePos(oop3, oop2);
+	//	updateBufferMemory(*cubes->at(cubes->size() - ((numOfAgents + 1) - i)), vertexBuffers.at(cubes->size() - ((numOfAgents + 1) - i)), vertexBufferMemorys.at(cubes->size() - ((numOfAgents + 1) - i)));
+
+	//	/*Cube* cub = new Cube(m_gameNodes.at(oop)->position.x, m_gameNodes.at(oop)->position.y, 2.0f);
+	//	cub->updateColor(glm::vec3(0.0f, 0.0f, 1.0f));
+	//	m_gameCubes.push_back(cub);*/
+	//}
+	//setStarts(starts);
+
+
 	for (int i = 0; i < numOfAgents; i++)
 	{
 		float oop = nodes->at(backfinalPaths.at(i).at(0))->position.x - nodes->at(backfinalPaths.at(i).at(backfinalPaths.at(i).size() -1))->position.x;
@@ -1024,9 +1050,15 @@ void Render::draw()
 		submitInfo2.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 		submitInfo2.commandBufferCount = 1;
 		submitInfo2.pCommandBuffers = &computeCommandBuffer;
+
+		auto start = std::chrono::high_resolution_clock::now();
 		vkQueueSubmit(graphicsQueue, 1, &submitInfo2, VK_NULL_HANDLE);
 		// but we can simply wait for all the work to be done
 		vkQueueWaitIdle(graphicsQueue);
+		auto stop = std::chrono::high_resolution_clock::now();
+		auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+		std::cout << "Time taken by GPU: "
+			<< duration.count() << " microseconds" << std::endl;
 
 		NodeData* data = nullptr;
 		if (vkMapMemory(device, memoryNode, 0, VK_WHOLE_SIZE, 0, reinterpret_cast<void**>(&data)) != VK_SUCCESS) {
@@ -1059,7 +1091,7 @@ void Render::draw()
 		//returnPaths2 = pathsReturned + 1;
 		//returnPaths3 = pathsReturned + 2;
 		vkUnmapMemory(device, memoryPaths);
-
+		backfinalPaths.clear();
 		for (int j = 0; j < numOfAgents; j++)
 		{
 			std::vector<int> p;
@@ -1101,7 +1133,7 @@ void Render::draw()
 	}
 	imagesInFlight[imageIndex] = inFlightFences[currentFrame];
 
-	if (wait > 250 && update == true)
+	if (wait > speed && update == true)
 	{
 		wait = 0;
 		for (int i = 0; i < numOfAgents; i++)
@@ -1439,7 +1471,7 @@ void Render::updateUniformBuffer(uint32_t currentImage)
 	UniformBufferObject ubo{};
 	ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 	ubo.view = glm::lookAt(eye, lookAT, glm::vec3(0.0f, 1.0f, 0.0f));
-	ubo.proj = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 1000.0f);
+	ubo.proj = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 5000.0f);
 	ubo.proj[1][1] *= -1;
 
 	void* data;
@@ -1476,7 +1508,7 @@ bool  Render::checkDeviceExtensionSupport(VkPhysicalDevice device)
 	for (const auto& extension : availableExtensions) {
 		std::cout << "\t" << extension.extensionName << std::endl; // \t = tab
 	}
-
+	std::cout << "" << std::endl;
 	std::set<std::string> requiredExtensions(deviceExtensions.begin(), deviceExtensions.end());
 
 	// Go through available and delete them from the required
@@ -1501,7 +1533,7 @@ QueueFamilyIndices  Render::findQueueFamilies(VkPhysicalDevice device)
 	auto result = queueFamilies.at(0).queueFlags & VK_QUEUE_GRAPHICS_BIT;
 	for (const auto& queueFamily : queueFamilies)
 	{						// From all the Queue families
-		std::cout << "QueueFamily: " << i << std::endl;
+		/*std::cout << "QueueFamily: " << i << std::endl;
 		std::cout << "Flag " << (queueFamily.queueFlags) << std::endl;
 		std::cout << "Graphics " << ((queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0) << std::endl;
 		std::cout << "Compute " << ((queueFamily.queueFlags & VK_QUEUE_COMPUTE_BIT) != 0) << std::endl;
@@ -1509,7 +1541,7 @@ QueueFamilyIndices  Render::findQueueFamilies(VkPhysicalDevice device)
 		std::cout << "Protected " << ((queueFamily.queueFlags & VK_QUEUE_PROTECTED_BIT) != 0) << std::endl;
 		std::cout << "Sparse " << ((queueFamily.queueFlags & VK_QUEUE_SPARSE_BINDING_BIT) != 0) << std::endl;
 		std::cout << "count: " << queueFamily.queueCount << std::endl;
-		std::cout << "" << std::endl;
+		std::cout << "" << std::endl;*/
 
 		if ((queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0 && (queueFamily.queueFlags & VK_QUEUE_COMPUTE_BIT) != 0)		// Bitwise calculation that results in 1 if correct (1 = true)
 		{			// If it has Queue graphics bit, one specific family grouping 

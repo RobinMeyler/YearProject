@@ -18,11 +18,11 @@ struct Node{
 struct NodeData{
 	int start;		// Start ID
 	int goal;		// Goal ID
-	Node nodes[40000];
+	Node nodes[250000];
 };
 
 struct Path{
-    int pathList[625];
+    int pathList[1000];
 };
 
 layout (local_size_x = 1) in;
@@ -32,13 +32,13 @@ layout(std430, set=0, binding=1) buffer outR { Path paths[]; };
 // layout(std430, set=0, binding=1) buffer inB { int oop[]; };
 // layout (binding = 3) uniform Node nodes[20];					// All grid nodes
 
-int pq[150];
+int pq[10];
 int count = 0;
 int leave = 0;
 int queueSize()
 {
 	int size = 0;
-	for(int s = 0; s < 150; s++)
+	for(int s = 0; s < 10; s++)
 	{
 		if(pq[s] != 0)
 		{
@@ -53,24 +53,24 @@ void pop(const uint index)
 	// Alternative would be to move the memory pointer over 4 bytes
 	// Shift all of the indexes down one and delete the last
 
-	for(int j = 0; j < 149; j++)
+	for(int j = 0; j < 9; j++)
 	{
 		pq[j] = pq[j+1];
 	}
-	pq[149] = 0; // Empty
+	pq[9] = 0; // Empty
 }
 
 void push(const uint index, int nodeID)
 {	
 	leave = nodeID;
-	for(int j = 1; j < 150; j++)
+	for(int j = 1; j < 10; j++)
 	{
 		if(pq[j] != -1)
 		{
 			if(nd[index].nodes[pq[j]].totalCostAccumlative > nd[index].nodes[nodeID].totalCostAccumlative )
 			{	
 				int temp = j;
-				for(int t = 149; t > 1; t--)
+				for(int t = 9; t > 1; t--)
 				{
 					if((t) == (temp))
 					{
@@ -88,7 +88,7 @@ void push(const uint index, int nodeID)
 			return;
 		}
 	}
-	pq[149] = nodeID;
+	pq[9] = nodeID;
 	return;
 }
 
@@ -97,7 +97,7 @@ void main(){
 	const uint index = gl_GlobalInvocationID.x;
 
 	// Set all in the queue to -1 for reference
-	for(int j = 0; j < 150; j++)
+	for(int j = 0; j < 10; j++)
 	{
 		pq[j] = -1;
 	}
@@ -155,7 +155,7 @@ void main(){
 	// Make path for each invocation
 	// Setting path ID or -1 if it doesn't exist
 	int loop = nd[index].goal;
-	for(int t = 0; t < 625; t++)
+	for(int t = 0; t < 1000; t++)
 	{
 		loop = nd[index].nodes[loop].previousID;
 		if(loop != -1)
