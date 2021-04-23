@@ -112,12 +112,12 @@ private:
 			if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS && timer > 10)
 			{
 				timer = 0;
-				m_renderer.updateCameraPosition(glm::vec3(0.0f, 0.0f, -CAMERA_CHANGE*2), 0);
+				m_renderer.updateCameraPosition(glm::vec3(0.0f, 0.0f, -CAMERA_CHANGE*4), 0);
 			}
 			if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS && timer > 10)
 			{
 				timer = 0;
-				m_renderer.updateCameraPosition(glm::vec3(0.0f, 0.0f, CAMERA_CHANGE*2), 0);
+				m_renderer.updateCameraPosition(glm::vec3(0.0f, 0.0f, CAMERA_CHANGE*4), 0);
 			}
 			// Tild up
 			if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS && timer > 10)
@@ -146,21 +146,21 @@ private:
 
 	void setupCubeMap()
 	{
-		// Bottome layer
-		int w = 0;
-		int h = 0;
-		for (int i = 0; i < gridSize; i = i+2)
-		{
-			for(int j = 0; j < gridSize; j= j+2)
-			{
-				Cube* cube = new Cube( j, i, 0.0f );
-				cube->updateColor(glm::vec3(0.5f, 0.5f, 0.5f));
-				m_gameCubes.push_back(cube);
-				h++;
-			}	
-			w++;
-			h = 0;
-		}
+		//// Bottome layer
+		//int w = 0;
+		//int h = 0;
+		//for (int i = 0; i < gridSize; i = i+2)
+		//{
+		//	for(int j = 0; j < gridSize; j= j+2)
+		//	{
+		//		Cube* cube = new Cube( j, i, 0.0f );
+		//		cube->updateColor(glm::vec3(0.5f, 0.5f, 0.5f));
+		//		m_gameCubes.push_back(cube);
+		//		h++;
+		//	}	
+		//	w++;
+		//	h = 0;
+		//}
 	
 
 		// Top layer

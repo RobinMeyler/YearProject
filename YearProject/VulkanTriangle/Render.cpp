@@ -744,7 +744,7 @@ void Render::createCommandBuffers()
 		renderPassInfo.renderArea.offset = { 0, 0 };
 		renderPassInfo.renderArea.extent = swapChainExtent;
 
-		VkClearValue clearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
+		VkClearValue clearColor = { 0.5f, 0.5f, 0.5f, 1.0f };
 		renderPassInfo.clearValueCount = 1;
 		renderPassInfo.pClearValues = &clearColor;
 
@@ -1101,7 +1101,7 @@ void Render::draw()
 	}
 	imagesInFlight[imageIndex] = inFlightFences[currentFrame];
 
-	if (wait > 500 && update == true)
+	if (wait > 250 && update == true)
 	{
 		wait = 0;
 		for (int i = 0; i < numOfAgents; i++)

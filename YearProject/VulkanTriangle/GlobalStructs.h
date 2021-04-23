@@ -31,7 +31,7 @@ struct NodeData
 {
 	int start;		// Start ID
 	int goal;		// Goal ID
-	Node nodes[10000];
+	Node nodes[40000];
 };
 
 struct Path
@@ -40,8 +40,8 @@ struct Path
 };
 
 
-const int numOfAgents = 100;
-const int gridSize = 200;
-const int gridSizeTotal = 10000;
-const int goalID = 4066;
+const int numOfAgents = 200;
+const int gridSize = 400;
+const int gridSizeTotal = 40000;
+const int goalID = 20100;
 const int pathMax = 625;
