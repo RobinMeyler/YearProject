@@ -113,7 +113,7 @@ public:
 	void resetAgents();
 	void updateCameraPosition(glm::vec3 t_changeInCameraPosition, int t_specify);
 	std::vector<Cube*>* cubes;
-
+	std::vector<Cube*> cubesNew;
 	std::vector<Node*>* nodes;
 	bool framebufferResized = false;
 

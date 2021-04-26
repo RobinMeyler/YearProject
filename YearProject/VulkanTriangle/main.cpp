@@ -40,6 +40,7 @@ class HelloTriangleApplication {            // Seperated into a better structure
 public:
 	std::vector<Cube*> m_gameCubesMoveable;
 	std::vector<Cube*> m_gameCubes;
+	std::vector<glm::vec2> m_matchingPositions;
 	std::vector<Node*> m_gameNodes;
 	std::vector<Cube*> m_AI;
 	
@@ -200,7 +201,7 @@ private:
 				node->previousID = -1;
 				node->position.x = j;
 				node->position.y = i;
-
+				m_matchingPositions.push_back(glm::vec2(j, i));
 				// Left
 				if (j != 0)
 					node->arcIDs[0] = ((h2 + w2) - 1);
@@ -230,11 +231,14 @@ private:
 			}
 			
 		}
-
+		for (int i = 0; i < m_gameCubes.size(); i++)
+		{
+			m_gameNodes.at(i)->costToGoal = abs(m_matchingPositions.at(goalID).x - m_matchingPositions.at(i).x) + abs(m_matchingPositions.at(goalID).y - m_matchingPositions.at(i).y);
+		}
 		// 18 is test goal
 		for (auto &nod : m_gameNodes)
 		{
-			nod->costToGoal = abs(m_gameNodes.at(goalID)->position.x - nod->position.x) + abs(m_gameNodes.at(goalID)->position.y - nod->position.y);
+			nod->costToGoal = abs(m_matchingPositions.at(goalID).x - nod->position.x) + abs(m_matchingPositions.at(goalID).y - nod->position.y);
 		}
 
 		std::random_device rd;
@@ -250,7 +254,7 @@ private:
 				oop = dis(gen);
 			}
 			starts.push_back(oop);
-			Cube* cub = new Cube(m_gameNodes.at(oop)->position.x, m_gameNodes.at(oop)->position.y, 2.0f);
+			Cube* cub = new Cube(m_matchingPositions.at(oop).x, m_matchingPositions.at(oop).y, 2.0f);
 			cub->updateColor(glm::vec3(0.0f, 0.0f, 1.0f));
 			m_gameCubes.push_back(cub);
 		}

@@ -23,14 +23,19 @@ void Render::setupVulkan(GLFWwindow* t_window)
 	createFrameBuffers();
 	createCommandPool();
 
+
+	auto start = std::chrono::high_resolution_clock::now();
 	createNodeBuffer(buffersNodes, 1, numOfAgents, 1);	// new
 	createPathsBuffer(buffersPaths, 1, numOfAgents, 0);	 // new
-
+	auto stop = std::chrono::high_resolution_clock::now();
+	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+	std::cout << "Time taken by GPU to map both Storage buffers: "
+		<< duration.count() << " microseconds" << std::endl;
 	for (int i = 0; i < cubes->size(); i++)
 	{
 		createVertexBuffer(*cubes->at(i), vertexBuffers.at(i), vertexBufferMemorys.at(i));
-		createIndexBuffer(*cubes->at(i), indexBuffers.at(i), indexBufferMemorys.at(i));
 	}
+	createIndexBuffer(*cubes->at(0), indexBuffers.at(0), indexBufferMemorys.at(0));
 
 	allocateBufferMemoryAndBind(buffersNodes, memoryNode, 0);	// new
 	allocateBufferMemoryAndBind(buffersPaths, memoryPaths, 1);	// new
@@ -538,12 +543,15 @@ void Render::creatBufferObjects(int t_count)
 	{
 		VkBuffer buffer, index;
 		vertexBuffers.push_back(buffer);
-		indexBuffers.push_back(index);
+		//indexBuffers.push_back(index);
 
 		VkDeviceMemory bufferMem, indexMem;
 		vertexBufferMemorys.push_back(bufferMem);
-		indexBufferMemorys.push_back(indexMem);
+		//indexBufferMemorys.push_back(indexMem);
 	}
+	VkBuffer index; VkDeviceMemory indexMem;
+	indexBuffers.push_back(index);
+	indexBufferMemorys.push_back(indexMem);
 }
 
 void Render::addVBOs(std::vector<Cube*>* t_cubesMoveable/*, std::vector<Cube*>* t_cubesUnmoved*/)
@@ -604,8 +612,71 @@ void Render::resetAgents()
 	//	m_gameCubes.push_back(cub);*/
 	//}
 	//setStarts(starts);
+	//std::random_device rd;
+	//std::mt19937 gen(rd());
+	//std::uniform_real_distribution<> dis(0.0, gridSizeTotal - 1);
 
+	//std::vector<int> starts;
+	//cubesNew.clear();
+	//for (int i = 0; i < numOfAgents; i++)
+	//{
+	//	long int oop = dis(gen);
+	//	while (nodes->at(oop)->passable == 0)
+	//	{
+	//		oop = dis(gen);
+	//	}
+	//	starts.push_back(oop);
+	//	Cube* cub = new Cube(nodes->at(oop)->position.x, nodes->at(oop)->position.y, 2.0f);
+	//	cub->updateColor(glm::vec3(0.0f, 0.0f, 1.0f));
+	//	cubesNew.push_back(cub);
+	//}
+	//setStarts(starts);
+	//for (int i = 0; i < numOfAgents; i++)
+	//{
+	//	updateBufferMemory(*cubesNew.at(i), vertexBuffers.at(cubes->size() - ((numOfAgents + 1) - i)), vertexBufferMemorys.at(cubes->size() - ((numOfAgents + 1) - i)));
+	//}
 
+	////update the new start positions
+	//NodeData* data = nullptr;
+	//if (vkMapMemory(device, memoryNode, 0, VK_WHOLE_SIZE, 0, reinterpret_cast<void**>(&data)) != VK_SUCCESS) {
+	//	throw std::runtime_error("failed to map device memory");
+	//}
+	//std::vector<Node> temp;
+
+	//for (auto& nod : *nodes)
+	//{
+	//	temp.push_back(*nod);
+	//}
+	//std::vector<NodeData*> agents;
+	//agents.resize(numOfAgents);
+	//for (int i = 0; i < numOfAgents; i++)
+	//{
+	//	agents.at(i) = data + i;
+	//	agents.at(i)->start = starts.at(i);
+	//	agents.at(i)->goal = goalID;
+	//	std::copy(std::begin(temp), std::end(temp), std::begin(agents.at(i)->nodes));
+	//}
+	//
+	//vkUnmapMemory(device, memoryNode);
+	//// Paths SSBO mapping =========================================
+	//Path* dataPaths = nullptr;
+	//if (vkMapMemory(device, memoryPaths, 0, VK_WHOLE_SIZE, 0, reinterpret_cast<void**>(&dataPaths)) != VK_SUCCESS) {
+	//	throw std::runtime_error("failed to map device memory");
+	//}
+	//Path fillerData;
+	//for (int i = 0; i < pathMax; i++)
+	//{
+	//	fillerData.pathList[i] = -1;
+	//}
+	//std::vector<Path*> praths;
+	//praths.resize(numOfAgents);
+	//for (int i = 0; i < numOfAgents; i++)
+	//{
+	//	praths.at(i) = dataPaths + i;
+	//	std::copy(std::begin(fillerData.pathList), std::end(fillerData.pathList), std::begin(praths.at(i)->pathList));
+	//}
+
+	// ======================================================
 	for (int i = 0; i < numOfAgents; i++)
 	{
 		float oop = nodes->at(backfinalPaths.at(i).at(0))->position.x - nodes->at(backfinalPaths.at(i).at(backfinalPaths.at(i).size() -1))->position.x;
@@ -783,7 +854,7 @@ void Render::createCommandBuffers()
 			VkBuffer vertexBuffersObs[] = { vertexBuffers.at(j) };
 			VkDeviceSize offsets[] = { 0 };
 			vkCmdBindVertexBuffers(commandBuffers[i], 0, 1, vertexBuffersObs, offsets);
-			vkCmdBindIndexBuffer(commandBuffers[i], indexBuffers.at(j), 0, VK_INDEX_TYPE_UINT32);
+			vkCmdBindIndexBuffer(commandBuffers[i], indexBuffers.at(0), 0, VK_INDEX_TYPE_UINT32);
 			vkCmdBindDescriptorSets(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[i], 0, nullptr);
 			vkCmdDrawIndexed(commandBuffers[i], static_cast<uint32_t>((*cubes)[j]->indices.size()), 1, 0, 0, 0);
 		}
@@ -805,16 +876,6 @@ void Render::createCommandBuffers()
 	if (vkEndCommandBuffer(computeCommandBuffer) != VK_SUCCESS) {
 		throw std::runtime_error("failed to end command buffer");
 	}
-	// Node SSBO mapping =======================================
-	NodeData* data = nullptr;
-	if (vkMapMemory(device, memoryNode, 0, VK_WHOLE_SIZE, 0, reinterpret_cast<void**>(&data)) != VK_SUCCESS) {
-		throw std::runtime_error("failed to map device memory");
-	}
-	/*Node nodesTemp[5625];
-	for (int i = 0; i < 625; i++)
-	{
-		nodesTemp[i] = *nodes->at(i);
-	}*/
 	std::vector<Node> temp;
 
 	for (auto& nod : *nodes)
@@ -827,6 +888,27 @@ void Render::createCommandBuffers()
 	//NodeData* data3;
 	std::vector<NodeData*> agents;
 	agents.resize(numOfAgents);
+	Path fillerData;
+	for (int i = 0; i < pathMax; i++)
+	{
+		fillerData.pathList[i] = -1;
+	}
+	std::vector<Path*> praths;
+	praths.resize(numOfAgents);
+
+
+	auto start = std::chrono::high_resolution_clock::now();
+	// Node SSBO mapping =======================================
+	NodeData* data = nullptr;
+	if (vkMapMemory(device, memoryNode, 0, VK_WHOLE_SIZE, 0, reinterpret_cast<void**>(&data)) != VK_SUCCESS) {
+		throw std::runtime_error("failed to map device memory");
+	}
+	/*Node nodesTemp[5625];
+	for (int i = 0; i < 625; i++)
+	{
+		nodesTemp[i] = *nodes->at(i);
+	}*/
+	
 	for (int i = 0; i < numOfAgents; i++)
 	{
 		agents.at(i) = data + i;
@@ -858,13 +940,6 @@ void Render::createCommandBuffers()
 	if (vkMapMemory(device, memoryPaths, 0, VK_WHOLE_SIZE, 0, reinterpret_cast<void**>(&dataPaths)) != VK_SUCCESS) {
 		throw std::runtime_error("failed to map device memory");
 	}
-	Path fillerData;
-	for (int i = 0; i < pathMax; i++)
-	{
-		fillerData.pathList[i] = -1;
-	}
-	std::vector<Path*> praths;
-	praths.resize(numOfAgents);
 	for (int i = 0; i < numOfAgents; i++)
 	{
 		praths.at(i) = dataPaths + i;
@@ -884,14 +959,22 @@ void Render::createCommandBuffers()
 	std::copy(std::begin(fillerData.pathList), std::end(fillerData.pathList), std::begin(populatingPaths3->pathList));*/
 
 	vkUnmapMemory(device, memoryPaths);
-
+	auto stop = std::chrono::high_resolution_clock::now();
+	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+	std::cout << "Time taken by GPU To Map memory: "
+		<< duration.count() << " microseconds" << std::endl;
 	//VkSubmitInfo submitInfo2 = {};
 	//submitInfo2.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 	//submitInfo2.commandBufferCount = 1;
 	//submitInfo2.pCommandBuffers = &computeCommandBuffer;
+	//auto start = std::chrono::high_resolution_clock::now();
 	//vkQueueSubmit(graphicsQueue, 1, &submitInfo2, VK_NULL_HANDLE);
 	//// but we can simply wait for all the work to be done
 	//vkQueueWaitIdle(graphicsQueue);
+	//auto stop = std::chrono::high_resolution_clock::now();
+	//auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+	//std::cout << "Time taken by GPU: "
+	//	<< duration.count() << " microseconds" << std::endl;
 
 	//data = nullptr;
 	//if (vkMapMemory(device, memoryNode, 0, VK_WHOLE_SIZE, 0, reinterpret_cast<void**>(&data)) != VK_SUCCESS) {
@@ -1046,6 +1129,7 @@ void Render::draw()
 	{
 		doPathfinding = false;
 		update = true;
+
 		VkSubmitInfo submitInfo2 = {};
 		submitInfo2.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 		submitInfo2.commandBufferCount = 1;
@@ -1330,10 +1414,14 @@ void Render::createNodeBuffer(VkBuffer& buffers, uint32_t num_buffers, uint64_t 
 	bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 	bufferCreateInfo.queueFamilyIndexCount = 1;
 	bufferCreateInfo.pQueueFamilyIndices = &indices.graphicsFamily.value();
-
+	auto start = std::chrono::high_resolution_clock::now();
 	if (vkCreateBuffer(device, &bufferCreateInfo, nullptr, &buffers) != VK_SUCCESS) {
 		throw std::runtime_error("failed to create Node buffers");
 	}
+	auto stop = std::chrono::high_resolution_clock::now();
+	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+	std::cout << "Time taken by GPU to create the Node storge buffer: "
+		<< duration.count() << " microseconds" << std::endl;
 }
 
 void Render::createComputePipeline(const std::string& shaderName)
@@ -1459,6 +1547,7 @@ void Render::addNodes(std::vector<Node*> *t_nodes)
 
 void Render::setStarts(std::vector<int> t_starts)
 {
+	starts.clear();
 	starts = t_starts;
 }
 
