@@ -113,12 +113,12 @@ private:
 			if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS && timer > 10)
 			{
 				timer = 0;
-				m_renderer.updateCameraPosition(glm::vec3(0.0f, 0.0f, -CAMERA_CHANGE*4), 0);
+				m_renderer.updateCameraPosition(glm::vec3(0.0f, 0.0f, -CAMERA_CHANGE*3), 0);
 			}
 			if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS && timer > 10)
 			{
 				timer = 0;
-				m_renderer.updateCameraPosition(glm::vec3(0.0f, 0.0f, CAMERA_CHANGE*4), 0);
+				m_renderer.updateCameraPosition(glm::vec3(0.0f, 0.0f, CAMERA_CHANGE*3), 0);
 			}
 			// Tild up
 			if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS && timer > 10)
@@ -141,6 +141,7 @@ private:
 				timer = 0;
 				m_renderer.speed += 2;
 			}
+	
 			timer++;
 			m_renderer.draw();
 		}
@@ -255,7 +256,7 @@ private:
 			}
 			starts.push_back(oop);
 			Cube* cub = new Cube(m_matchingPositions.at(oop).x, m_matchingPositions.at(oop).y, 2.0f);
-			cub->updateColor(glm::vec3(0.0f, 0.0f, 1.0f));
+			cub->updateColor(glm::vec3(0.0f, 0.0f, 0.0f));
 			m_gameCubes.push_back(cub);
 		}
 		m_renderer.setStarts(starts);

@@ -18,11 +18,11 @@ struct Node{
 struct NodeData{
 	int start;		// Start ID
 	int goal;		// Goal ID
-	Node nodes[2500];
+	Node nodes[250000];
 };
 
 struct Path{
-    int pathList[500];
+    int pathList[1000];
 };
 
 layout (local_size_x = 1) in;
@@ -155,7 +155,7 @@ void main(){
 	// Make path for each invocation
 	// Setting path ID or -1 if it doesn't exist
 	int loop = nd[index].goal;
-	for(int t = 0; t < 500; t++)
+	for(int t = 0; t < 1000; t++)
 	{
 		loop = nd[index].nodes[loop].previousID;
 		if(loop != -1)

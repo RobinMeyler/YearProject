@@ -50,9 +50,6 @@ static std::vector<char> readFile(const std::string& filename);
 static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
 
 const int MAX_FRAMES_IN_FLIGHT = 2;
-const int WIDTH = 1600;      // Screen deetz
-const int HEIGHT = 1200;
-
 
 
 class Render {

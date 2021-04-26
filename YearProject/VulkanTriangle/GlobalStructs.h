@@ -27,13 +27,15 @@ struct Node
 	int padding;        // Aligning the memoryw with the base/ largest data -> Vec2
 };
 
-
-const int numOfAgents = 1000;
-const int gridSize = 100;	// Actually 500 X 500 cus the cubes are 2 units wide
-const int goalID = 1051;
-const int pathMax = 500;
+const int WIDTH = 2400;      // Screen deetz
+const int HEIGHT = 1800;
 
 
+
+const int numOfAgents = 200;
+const int gridSize = 1000;	// Actually 500 X 500 cus the cubes are 2 units wide
+const int goalID = 122710;
+const int pathMax = 1000;
 const int gridSizeTotal = (gridSize/2) * (gridSize / 2); // 250,000
 
 
