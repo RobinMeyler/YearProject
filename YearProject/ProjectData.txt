@@ -7,6 +7,7 @@
 295778
 345989
 298615
+= 306414 = 0.3 seconds
 
 // Grid of 500x500 = 250,000 nodes
 200 agents:		dispatch sizes of 20 at local size of 10
@@ -15,6 +16,7 @@
 449688			748280
 423919			766392
 438105			646627
+= 441442 = 0.44 secs    = 726602 = 0.72 seconds
 
 100 agents:
 351281
@@ -22,6 +24,7 @@
 341169
 432181
 357576
+=362903 = 0.36 seconds
 
 10 agents:
 165928
@@ -29,6 +32,7 @@
 260441
 206317
 313237
+= 224689 = 0.22 seconds
 
 // Grid of 250x250 = 62500 nodes
 Microseconds
@@ -38,12 +42,12 @@ Microseconds
 920970
 811103
 866984
-
 790067
 712537
 737136
 716558
 790225
+= 799018 = 0.79 seconds
 
 500 agents: 
 426163
@@ -51,12 +55,12 @@ Microseconds
 369754
 389325
 461801
-
 350173
 435519
 440691
 433819
 396837
+= 401686 = 0.4 seconds
 
 200 agents:
 190688
@@ -64,6 +68,7 @@ Microseconds
 184892
 216487
 178683
+= 189654 = 0.18 seconds
 
 100 agents:
 132807
@@ -71,12 +76,12 @@ Microseconds
 119528
 139507
 135644
-
 130127
 148715
 119536
 152281
 143519
+= 135627 = 0.13 seconds
 
 10 agents
 81813
@@ -84,6 +89,8 @@ Microseconds
 94748
 94189
 78661
+= 83646	0.08 seconds
+
 
 // Grid of 100x100 = 10,000 nodes
 1000 agents:
@@ -92,6 +99,7 @@ Microseconds
 170931
 173187
 204379
+= 181319 = 0.18 seconds
 
 500 agents:
 65829
@@ -99,6 +107,7 @@ Microseconds
 67521
 65323
 65416
+= 65953 = 0.065 seconds
 
 200 agents:
 30673
@@ -106,6 +115,7 @@ Microseconds
 30597
 30180
 29757
+= 30384	= 0.03 seconds
 
 100 agents:
 18977
@@ -113,6 +123,7 @@ Microseconds
 19203
 20187
 19813
+= 19787 = 0.019 seconds
 
 10 agents:
 16383
@@ -120,6 +131,7 @@ Microseconds
 16323
 16348
 16262
+= 16008	= 0.016 seconds
 
 // Grid of 50x50 = 2,500 nodes
 1000 agents:
@@ -128,6 +140,7 @@ Microseconds
 53022
 58224
 66356
+= 59818	= 0.059 seconds
 
 500 agents:
 24100
@@ -135,6 +148,7 @@ Microseconds
 24333
 23262
 23949
+= 23803	= 0.023 seconds
 
 200 agents:
 10965
@@ -142,6 +156,7 @@ Microseconds
 10682
 9443
 9968
+= 10179	= 0.01 seconds
 
 100 agents:
 6018
@@ -149,6 +164,7 @@ Microseconds
 5783
 5406
 5592
+= 5785 = 0.0057 seconds
 
 10 agents:
 4705
@@ -156,3 +172,4 @@ Microseconds
 6049
 4561
 4487
+= 4997 = 0.0049 seconds
