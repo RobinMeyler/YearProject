@@ -10,7 +10,7 @@ class Cube
 {
 public:
 	Cube();
-	float x, y, z;
+
 	Cube(float t_xDis, float t_yDis, float t_zDist);
 	void updateColor(glm::vec3 t_color);
 	void updatePos(float t_move, float t_moveY);

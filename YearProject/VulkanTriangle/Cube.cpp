@@ -6,9 +6,6 @@ Cube::Cube()
 
 Cube::Cube(float t_xDis, float t_yDis, float t_zDist)
 {
-	x = t_xDis;
-	y = t_yDis;
-	z = t_zDist;
 	for (auto& pos : vertices)
 	{
 		pos.pos.x += t_xDis;

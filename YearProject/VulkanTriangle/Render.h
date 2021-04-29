@@ -190,32 +190,31 @@ private:
 };	
 
 
-struct Vertex2 {
-	glm::vec3 pos;
-	glm::vec3 color;
+struct Vertex3 {
+	glm::vec3 pos;			
+	glm::vec3 color;		
 
 	static VkVertexInputBindingDescription getBindingDescription()
 	{
 		VkVertexInputBindingDescription bindingDescription{};
-		bindingDescription.binding = 0;
-		bindingDescription.stride = sizeof(Vertex2);
-		bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-
+		bindingDescription.binding = 0;									// Layout binding
+		bindingDescription.stride = sizeof(Vertex3);					// Stride, which is the size of itself
+		bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;		// This can be used for instancing
 		return bindingDescription;
 	}
 
 	static std::array<VkVertexInputAttributeDescription, 2> getAttributeDescriptions()
 	{
 		std::array<VkVertexInputAttributeDescription, 2> attributeDescriptions{};
-		attributeDescriptions[0].binding = 0;
-		attributeDescriptions[0].location = 0;
-		attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
-		attributeDescriptions[0].offset = offsetof(Vertex2, pos);
+		attributeDescriptions[0].binding = 0;								// (layout binding = 0)
+		attributeDescriptions[0].location = 0;								// (layout location = 1)
+		attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;		// pos, size of 3
+		attributeDescriptions[0].offset = offsetof(Vertex3, pos);
 
-		attributeDescriptions[1].binding = 0;
-		attributeDescriptions[1].location = 1;
-		attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-		attributeDescriptions[1].offset = offsetof(Vertex2, color);
+		attributeDescriptions[1].binding = 0;								// (layout binding = 0)
+		attributeDescriptions[1].location = 1;								// (layout location = 1)
+		attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;		// color, size of 3
+		attributeDescriptions[1].offset = offsetof(Vertex3, color);
 
 		return attributeDescriptions;
 	}

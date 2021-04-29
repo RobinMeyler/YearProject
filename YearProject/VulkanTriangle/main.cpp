@@ -261,18 +261,6 @@ private:
 		}
 		m_renderer.setStarts(starts);
 
-		//m_start1 = new Cube(m_gameNodes.at(341)->position.x, m_gameNodes.at(341)->position.y, 2.0f);
-		//m_start1->updateColor(glm::vec3(0.0f, 0.0f, 1.0f));
-		//m_gameCubes.push_back(m_start1);
-
-		//m_start2 = new Cube(m_gameNodes.at(1536)->position.x, m_gameNodes.at(1536)->position.y, 2.0f);
-		//m_start2->updateColor(glm::vec3(0.0f, 0.0f, 1.0f));
-		//m_gameCubes.push_back(m_start2);
-
-		//m_start3 = new Cube(m_gameNodes.at(129)->position.x, m_gameNodes.at(129)->position.y, 2.0f);
-		//m_start3->updateColor(glm::vec3(0.0f, 0.0f, 1.0f));
-		//m_gameCubes.push_back(m_start3);
-
 		m_goal = new Cube(m_gameNodes.at(goalID)->position.x, m_gameNodes.at(goalID)->position.y, 2.0f);
 		m_goal->updateColor(glm::vec3(1.0f, 0.0f, 0.0f));
 		m_gameCubes.push_back(m_goal);

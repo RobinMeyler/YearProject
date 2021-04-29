@@ -24,17 +24,15 @@ struct Node
 	int previousID;		// Previous id for finidng path
 	int arcIDs[4];		// 4 neighbours in grid by ID
 	glm::vec2 position;
-	int padding;        // Aligning the memoryw with the base/ largest data -> Vec2
+	int padding;        // Aligning the memory with the base/ largest data -> Vec2
 };
 
 const int WIDTH = 2400;      // Screen deetz
 const int HEIGHT = 1800;
 
-
-
 const int numOfAgents = 200;
 const int gridSize = 1000;	// Actually 500 X 500 cus the cubes are 2 units wide
-const int goalID = 122710;
+const int goalID = 125751;
 const int pathMax = 1000;
 const int gridSizeTotal = (gridSize/2) * (gridSize / 2); // 250,000
 
