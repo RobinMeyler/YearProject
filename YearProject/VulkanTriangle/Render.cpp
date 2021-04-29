@@ -19,12 +19,17 @@ void Render::setupVulkan(GLFWwindow* t_window)
 	createComputePipelineLayout();			
 	createComputePipeline("shaders/astar.spv");	
 	createFrameBuffers();		
-	createCommandPool();		
-	auto start = std::chrono::high_resolution_clock::now();
+	createCommandPool();
 	createNodeBuffer(buffersNodes, 1, numOfAgents, 1);		
 	createPathsBuffer(buffersPaths, 1, numOfAgents, 0);		
+
+	createInstanceBuffer();
+	//createVertexBuffer(*cubes->at(0), vertexBuffers.at(0), vertexBufferMemorys.at(0));
+
 	for (int i = 0; i < cubes->size(); i++)
-		createVertexBuffer(*cubes->at(i), vertexBuffers.at(i), vertexBufferMemorys.at(i));	
+	{
+		createVertexBuffer(*cubes->at(i), vertexBuffers.at(i), vertexBufferMemorys.at(i));
+	}
 	createIndexBuffer(*cubes->at(0), indexBuffers.at(0), indexBufferMemorys.at(0));			
 	allocateBufferMemoryAndBind(buffersNodes, memoryNode, 0);	
 	allocateBufferMemoryAndBind(buffersPaths, memoryPaths, 1);	
@@ -346,12 +351,54 @@ void Render::createVulkanGraphicsPipeline()
 
 	VkPipelineVertexInputStateCreateInfo vertexInputInfo = {};
 	vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-	auto bindingDescription = Vertex3::getBindingDescription();								// Binding
-	auto attributeDescriptions = Vertex3::getAttributeDescriptions();						// Layout positions
+	//auto bindingDescription = Vertex3::getBindingDescription();								// Binding
+	//auto attributeDescriptions = Vertex3::getAttributeDescriptions();						// Layout positions
+	std::vector<VkVertexInputBindingDescription> bindingDescriptions;
+	std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
 
-	vertexInputInfo.vertexBindingDescriptionCount = 1;
+
+	VkVertexInputBindingDescription vInputBindDescription{};
+	vInputBindDescription.binding = 0;
+	vInputBindDescription.stride = sizeof(Vertex3);
+	vInputBindDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+	VkVertexInputBindingDescription vInputBindDescription2{};
+	vInputBindDescription2.binding = 1;
+	vInputBindDescription2.stride = sizeof(InstanceData);
+	vInputBindDescription2.inputRate = VK_VERTEX_INPUT_RATE_INSTANCE;
+
+	bindingDescriptions = {
+		// Binding point 0: Mesh vertex layout description at per-vertex rate
+		vInputBindDescription,
+		// Binding point 1: Instanced data at per-instance rate
+		vInputBindDescription2 
+	};
+
+	VkVertexInputAttributeDescription vInputAttribDescription{};
+	vInputAttribDescription.location = 0;
+	vInputAttribDescription.binding = 0;
+	vInputAttribDescription.format = VK_FORMAT_R32G32B32_SFLOAT;
+	vInputAttribDescription.offset = 0;
+
+	VkVertexInputAttributeDescription vInputAttribDescription2{};
+	vInputAttribDescription2.location = 1;
+	vInputAttribDescription2.binding = 0;
+	vInputAttribDescription2.format = VK_FORMAT_R32G32B32_SFLOAT;
+	vInputAttribDescription2.offset = sizeof(float) * 3;
+
+	// inst
+	VkVertexInputAttributeDescription vInputAttribDescription3{};
+	vInputAttribDescription3.location = 2;
+	vInputAttribDescription3.binding = 1;
+	vInputAttribDescription3.format = VK_FORMAT_R32G32B32_SFLOAT;
+	vInputAttribDescription3.offset = 0;
+
+	attributeDescriptions = {
+		vInputAttribDescription, vInputAttribDescription2, vInputAttribDescription3	
+	};
+
+	vertexInputInfo.vertexBindingDescriptionCount = static_cast<uint32_t>(bindingDescriptions.size());
 	vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
-	vertexInputInfo.pVertexBindingDescriptions = &bindingDescription;
+	vertexInputInfo.pVertexBindingDescriptions = bindingDescriptions.data();
 	vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
 
 	VkPipelineInputAssemblyStateCreateInfo inputAssembly = {};
@@ -437,6 +484,13 @@ void Render::createVulkanGraphicsPipeline()
 		throw std::runtime_error("failed to create graphics pipeline!");
 	}
 
+	vertexInputInfo.vertexBindingDescriptionCount = 1;
+	vertexInputInfo.vertexAttributeDescriptionCount = 2;
+
+	if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipelineNONinstanced) != VK_SUCCESS)
+	{
+		throw std::runtime_error("failed to create graphics pipeline!");
+	}
 	vkDestroyShaderModule(device, fragShaderModule, nullptr);
 	vkDestroyShaderModule(device, vertShaderModule, nullptr);
 }
@@ -484,16 +538,29 @@ void Render::createCommandPool()
 
 void Render::creatBufferObjects(int t_count)
 {
-	for (int i = 0; i < t_count; i++)
-	{
-		VkBuffer buffer, index;
-		vertexBuffers.push_back(buffer);
-		//indexBuffers.push_back(index);
+	//for (int i = 0; i < t_count; i++)
+	//{
+	//	VkBuffer buffer, index;
+	//	vertexBuffers.push_back(buffer);
+	//	//indexBuffers.push_back(index);
 
-		VkDeviceMemory bufferMem, indexMem;
-		vertexBufferMemorys.push_back(bufferMem);
-		//indexBufferMemorys.push_back(indexMem);
+	//	VkDeviceMemory bufferMem, indexMem;
+	//	vertexBufferMemorys.push_back(bufferMem);
+	//	//indexBufferMemorys.push_back(indexMem);
+	//}
+	// Instanced buffer object
+	//VkBuffer buffer; VkDeviceMemory buffMem;
+	//vertexBuffers.push_back(buffer);
+	//vertexBufferMemorys.push_back(buffMem);
+
+	// Movable cubes
+	for (int j = 0; j < t_count; j++)
+	{
+		VkBuffer buffer2; VkDeviceMemory bufferMem2;
+		vertexBuffers.push_back(buffer2);
+		vertexBufferMemorys.push_back(bufferMem2);
 	}
+
 	VkBuffer index; VkDeviceMemory indexMem;
 	indexBuffers.push_back(index);
 	indexBufferMemorys.push_back(indexMem);
@@ -569,6 +636,44 @@ void Render::updateCameraPosition(glm::vec3 t_changeInCameraPosition, int t_spec
 		lookAT += t_changeInCameraPosition;
 	}
 	
+}
+
+void Render::createInstanceBuffer()
+{
+	std::vector<InstanceData> instanceDatas;
+
+	for (auto i = 0; i < nodes->size(); i++)
+	{
+		if (nodes->at(i)->passable == 0)
+		{
+			InstanceData inst;
+			inst.pos.x = nodes->at(i)->position.x;
+			inst.pos.y = nodes->at(i)->position.y;
+			instanceDatas.push_back(inst);
+		}
+	}
+	instanceBuffer.size = instanceDatas.size() * sizeof(InstanceData);
+
+	VkBuffer stagingBuffer;
+	VkDeviceMemory stagingBufferMemory;
+	createBuffer(instanceBuffer.size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+
+	void* data;
+	vkMapMemory(device, stagingBufferMemory, 0, instanceBuffer.size, 0, &data);
+	memcpy(data, instanceDatas.data(), (size_t)instanceBuffer.size);
+	vkUnmapMemory(device, stagingBufferMemory);
+
+	createBuffer(instanceBuffer.size, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, instanceBuffer.buffer, instanceBuffer.memory);
+
+	copyBuffer(stagingBuffer, instanceBuffer.buffer, instanceBuffer.size);
+
+	instanceBuffer.descriptor.range = instanceBuffer.size;
+	instanceBuffer.descriptor.buffer = instanceBuffer.buffer;
+	instanceBuffer.descriptor.offset = 0;
+
+	vkDestroyBuffer(device, stagingBuffer, nullptr);
+	vkFreeMemory(device, stagingBufferMemory, nullptr);
+
 }
 
 void Render::createIndexBuffer(Cube& t_cube, VkBuffer& t_vertexbuffer, VkDeviceMemory& t_vertexbuffermemory)
@@ -723,8 +828,27 @@ void Render::createCommandBuffers()
 		vkCmdBeginRenderPass(commandBuffers[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);		// start render pass
 
 		vkCmdBindPipeline(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);	// Bind the graphics pipeline
+		
 
-		// for every cube
+
+		VkDeviceSize offsetz[1] = { 0 };
+			// Instanced rocks
+		vkCmdBindDescriptorSets(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[i], 0, NULL);
+		// Binding point 0 : Mesh vertex buffer
+		vkCmdBindVertexBuffers(commandBuffers[i], 0, 1, &vertexBuffers.at(0), offsetz);
+		// Binding point 1 : Instance data buffer
+		vkCmdBindVertexBuffers(commandBuffers[i], 1, 1, &instanceBuffer.buffer, offsetz);
+		// Bind index buffer
+		vkCmdBindIndexBuffer(commandBuffers[i], indexBuffers.at(0), 0, VK_INDEX_TYPE_UINT32);
+
+		// Render instances
+		vkCmdDrawIndexed(commandBuffers[i], static_cast<uint32_t>((*cubes)[0]->indices.size()), (*nodes).size(), 0, 0, 0);
+
+		vkCmdBindPipeline(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineNONinstanced);	// Bind the graphics pipeline
+
+
+		//// for every cube
+		//int whatsLeft = cubes->size();
 		for (int j = 0; j < cubes->size(); j++)
 		{
 			VkBuffer vertexBuffersObs[] = { vertexBuffers.at(j) };

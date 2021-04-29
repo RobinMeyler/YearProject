@@ -1,5 +1,8 @@
 #pragma once
 
+#define GLFW_INCLUDE_VULKAN		// This includes Vulkan
+#include <GLFW/glfw3.h>
+
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEFAULT_ALIGNED_GENTYPES
 #include <glm/gtc/matrix_transform.hpp>
@@ -49,5 +52,16 @@ struct Path
 	int pathList[pathMax];
 };
 
+// Contains the instanced data
+struct InstanceBuffer {
+	VkBuffer buffer;
+	VkDeviceMemory memory;
+	size_t size = 0;
+	VkDescriptorBufferInfo descriptor;
+};
 
+// Per-instance data block
+struct InstanceData {
+	glm::vec3 pos;
+};
 

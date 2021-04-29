@@ -3,8 +3,6 @@
 // Author: Robin Meyler
 // Date: 2020/2021
 
-#define GLFW_INCLUDE_VULKAN		// This includes Vulkan
-#include <GLFW/glfw3.h>
 
 
 #include <chrono>
@@ -116,7 +114,9 @@ public:
 
 	bool doPathfinding = false;
 	bool update = false;
-	int speed = 250;
+	int speed = 100;
+	InstanceBuffer instanceBuffer;
+	void createInstanceBuffer();
 private:
 
 	GLFWwindow* window;                     // Main window
@@ -134,6 +134,7 @@ private:
 	VkRenderPass renderPass;
 	VkPipelineLayout pipelineLayout;
 	VkPipeline graphicsPipeline;
+	VkPipeline graphicsPipelineNONinstanced;
 	std::vector<VkFramebuffer> swapChainFramebuffers;
 	VkCommandPool commandPool;
 	std::vector<VkCommandBuffer> commandBuffers;

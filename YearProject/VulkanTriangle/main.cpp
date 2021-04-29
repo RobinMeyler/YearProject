@@ -134,12 +134,14 @@ private:
 			if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS && timer > 10)
 			{
 				timer = 0;
-				m_renderer.speed -= 2;
+				if(m_renderer.speed > 2)
+					m_renderer.speed -= 2;
 			}
 			if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS && timer > 10)
 			{
 				timer = 0;
-				m_renderer.speed += 2;
+				if (m_renderer.speed < 500)
+					m_renderer.speed += 2;
 			}
 	
 			timer++;
@@ -172,7 +174,8 @@ private:
 		//	h = 0;
 		//}
 	
-
+	    Cube* cube = new Cube(0, 0, 2.0f);
+		m_gameCubes.push_back(cube);
 		// Top layer
 		int count = 0;
 		int w2 = 0;
@@ -186,13 +189,12 @@ private:
 				node->passable = 1;
 				if (j == 0 || j == (gridSize-2) || i == 0 || i == (gridSize-2) || rdm % 10 == 3)
 				{
-					Cube* cube = new Cube(j, i, 2.0f);
-					//cube->updateColor(glm::vec3(0.0f, 1.0f, 0.0f));
-					m_gameCubes.push_back(cube);
+					//Cube* cube = new Cube(j, i, 2.0f);
+					////cube->updateColor(glm::vec3(0.0f, 1.0f, 0.0f));
+					//m_gameCubes.push_back(cube);
 					node->passable = 0;
 				}
 				count++;
-			
 				node->costToGoal = 1;
 				node->totalCostFromStart = 0;
 				node->totalCostAccumlative = 1000;
