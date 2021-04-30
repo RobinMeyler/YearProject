@@ -12,14 +12,13 @@ struct Node{
 	int ID;
 	int previousID;		// Previous id for finding path
 	int arcIDs[4];		// 4 neighbours in grid by ID
-	vec2 position;
 };
 
 // Per invocation node data
 struct NodeData{
 	int start;		// Start ID
 	int goal;		// Goal ID
-	Node nodes[250000];
+	Node nodes[62500];
 };
 // List for paths
 struct Path{

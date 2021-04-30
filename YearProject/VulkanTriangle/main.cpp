@@ -53,6 +53,22 @@ public:
 	void run() {
 		initWindow();                       // Setup GLFW window and settings for Vulkan
 
+		float index;
+		float accum = 0;
+		int count = 0;
+		std::ifstream file("results500_200_5.txt");
+		// Read in names and scores from file
+		if (file.is_open())
+		{
+			while (file >> index)
+			{
+				accum += index;
+				count++;
+			}
+		}
+		file.close();
+		float average = accum / count;
+		std::cout << "Average: " << std::to_string(average) << std::endl;
 		setupCubeMap();
 		m_renderer.addVBOs(&m_gameCubes);
 		m_renderer.setupVulkan(window);
@@ -187,7 +203,7 @@ private:
 				int rdm = rand() % 10;
 				Node* node = new Node;
 				node->passable = 1;
-				if (j == 0 || j == (gridSize-2) || i == 0 || i == (gridSize-2) || rdm % 10 == 3)
+				if (j == 0 || j == (gridSize-2) || i == 0 || i == (gridSize-2) || rdm % 10 == 1)
 				{
 					//Cube* cube = new Cube(j, i, 2.0f);
 					////cube->updateColor(glm::vec3(0.0f, 1.0f, 0.0f));
@@ -197,13 +213,11 @@ private:
 				count++;
 				node->costToGoal = 1;
 				node->totalCostFromStart = 0;
-				node->totalCostAccumlative = 1000;
+				node->totalCostAccumlative = 100000;
 				node->marked = 0;
 
 				node->ID = (h2 + w2);
 				node->previousID = -1;
-				node->position.x = j;
-				node->position.y = i;
 				m_matchingPositions.push_back(glm::vec2(j, i));
 				// Left
 				if (j != 0)
@@ -234,14 +248,14 @@ private:
 			}
 			
 		}
-		for (int i = 0; i < m_gameCubes.size(); i++)
-		{
-			m_gameNodes.at(i)->costToGoal = abs(m_matchingPositions.at(goalID).x - m_matchingPositions.at(i).x) + abs(m_matchingPositions.at(goalID).y - m_matchingPositions.at(i).y);
-		}
+		//for (int i = 0; i < m_gameCubes.size(); i++)
+		//{
+		//	m_gameNodes.at(i)->costToGoal = abs(m_matchingPositions.at(goalID).x - m_matchingPositions.at(i).x) + abs(m_matchingPositions.at(goalID).y - m_matchingPositions.at(i).y);
+		//}
 		// 18 is test goal
 		for (auto &nod : m_gameNodes)
 		{
-			nod->costToGoal = abs(m_matchingPositions.at(goalID).x - nod->position.x) + abs(m_matchingPositions.at(goalID).y - nod->position.y);
+			nod->costToGoal = abs(m_matchingPositions.at(goalID).x - m_matchingPositions.at(nod->ID).x) + abs(m_matchingPositions.at(goalID).y - m_matchingPositions.at(nod->ID).y);
 		}
 
 		std::random_device rd;
@@ -263,10 +277,11 @@ private:
 		}
 		m_renderer.setStarts(starts);
 
-		m_goal = new Cube(m_gameNodes.at(goalID)->position.x, m_gameNodes.at(goalID)->position.y, 2.0f);
+		m_goal = new Cube(m_matchingPositions.at(goalID).x, m_matchingPositions.at(goalID).y, 2.0f);
 		m_goal->updateColor(glm::vec3(1.0f, 0.0f, 0.0f));
 		m_gameCubes.push_back(m_goal);
 
+		m_renderer.setMatchingPositions(&m_matchingPositions);
 		m_renderer.addNodes(&m_gameNodes);
 		m_renderer.creatBufferObjects(m_gameCubes.size());
 	}

@@ -86,6 +86,7 @@ public:
 	void createComputeCommandPoolAndBuffer();
 	void addNodes(std::vector<Node*> *t_nodes);
 	void setStarts(std::vector<int> t_starts);
+	void setMatchingPositions(std::vector<glm::vec2>* t_pos);
 
 	void addVBOs(std::vector<Cube*> *t_cubes);
 	bool isDeviceSuitable(VkPhysicalDevice device);
@@ -176,7 +177,7 @@ private:
 	std::vector<std::vector<int>> backfinalPaths;
 	std::vector<int> starts;
 	std::vector<int> nexts;
-
+	std::vector<glm::vec2>* matchingPos;
 	glm::vec3 eye = glm::vec3((float)(gridSize / 2), (float)(gridSize / 2), 400.0f/*(float)(gridSize * 1.5f)*/);
 	glm::vec3 lookAT = glm::vec3((float)(gridSize / 2), (float)(gridSize / 2), 0.0f);
 	NodeData* dataR;
@@ -184,7 +185,7 @@ private:
 	NodeData* dataR3;
 	int next = 1;
 	int last = 0;
-	int wait = 0;
+	int wait = 100;
 	std::vector<int> finalPath;
 	std::vector<int> finalPath2;
 	std::vector<int> finalPath3;

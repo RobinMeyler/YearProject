@@ -303,10 +303,10 @@ void Render::createVulkanRenderPass()
 
 void Render::createDescriptorSetLayout()
 {
-//		VS:
-//		layout(set = 0, binding = 0) uniform UBOMatrices;
-//		FS:
-//		layout(set = 0, binding = 1) uniform sampler2D;
+//	VS:
+//	layout(set = 0, binding = 0) uniform UBOMatrices;
+//	FS:
+//	layout(set = 0, binding = 1) uniform sampler2D;
 	VkDescriptorSetLayoutBinding uboLayoutBinding{};
 	uboLayoutBinding.binding = 0;
 	uboLayoutBinding.descriptorCount = 1;
@@ -538,20 +538,6 @@ void Render::createCommandPool()
 
 void Render::creatBufferObjects(int t_count)
 {
-	//for (int i = 0; i < t_count; i++)
-	//{
-	//	VkBuffer buffer, index;
-	//	vertexBuffers.push_back(buffer);
-	//	//indexBuffers.push_back(index);
-
-	//	VkDeviceMemory bufferMem, indexMem;
-	//	vertexBufferMemorys.push_back(bufferMem);
-	//	//indexBufferMemorys.push_back(indexMem);
-	//}
-	// Instanced buffer object
-	//VkBuffer buffer; VkDeviceMemory buffMem;
-	//vertexBuffers.push_back(buffer);
-	//vertexBufferMemorys.push_back(buffMem);
 
 	// Movable cubes
 	for (int j = 0; j < t_count; j++)
@@ -607,11 +593,37 @@ void Render::updateBufferMemory(Cube& t_cube, VkBuffer& t_vertexbuffer, VkDevice
 
 void Render::resetAgents()
 {
+
+	//std::random_device rd;
+	//std::mt19937 gen(rd());
+	//std::uniform_real_distribution<> dis(0.0, gridSizeTotal - 1);
+
+	//std::vector<int> starts;
+	//for (int i = 0; i < numOfAgents; i++)
+	//{
+	//	long int oop = dis(gen);
+	//	while (nodes.at(oop)->passable == 0)
+	//	{
+	//		oop = dis(gen);
+	//	}
+	//	starts.push_back(oop);
+	//	Cube* cub = new Cube(m_matchingPositions.at(oop).x, m_matchingPositions.at(oop).y, 2.0f);
+	//	cub->updateColor(glm::vec3(0.0f, 0.0f, 0.0f));
+	//	m_gameCubes.push_back(cub);
+	//}
+	//m_renderer.setStarts(starts);
+
+	// Set new cubes positions
+	// Update cubes to position
+	// Reset node data
+	// update storage buffers
+
+
 	// reseting the Cubes to their starting places
 	for (int i = 0; i < numOfAgents; i++)
 	{
-		float oop = nodes->at(backfinalPaths.at(i).at(0))->position.x - nodes->at(backfinalPaths.at(i).at(backfinalPaths.at(i).size() -1))->position.x;
-		float oop2 = nodes->at(backfinalPaths.at(i).at(0))->position.y - nodes->at(backfinalPaths.at(i).at(backfinalPaths.at(i).size() - 1))->position.y;
+		float oop = matchingPos->at(backfinalPaths.at(i).at(0)).x - matchingPos->at(backfinalPaths.at(i).at(backfinalPaths.at(i).size() -1)).x;
+		float oop2 = matchingPos->at(backfinalPaths.at(i).at(0)).y - matchingPos->at(backfinalPaths.at(i).at(backfinalPaths.at(i).size() - 1)).y;
 		cubes->at(cubes->size() - ((numOfAgents + 1) - i))->updatePos(oop, oop2);
 		updateBufferMemory(*cubes->at(cubes->size() - ((numOfAgents + 1) - i)), vertexBuffers.at(cubes->size() - ((numOfAgents + 1) - i)), vertexBufferMemorys.at(cubes->size() - ((numOfAgents + 1) - i)));
 		
@@ -647,8 +659,8 @@ void Render::createInstanceBuffer()
 		if (nodes->at(i)->passable == 0)
 		{
 			InstanceData inst;
-			inst.pos.x = nodes->at(i)->position.x;
-			inst.pos.y = nodes->at(i)->position.y;
+			inst.pos.x = matchingPos->at(i).x;
+			inst.pos.y = matchingPos->at(i).y;
 			instanceDatas.push_back(inst);
 		}
 	}
@@ -978,6 +990,19 @@ void Render::draw()
 			<< duration.count() << " microseconds" << " = " << seconds << " seconds" << std::endl;
 		// =======================================
 
+
+		std::ofstream filestr;
+		std::string stg = "results250_200_20.txt";
+		filestr.open(stg, std::fstream::in | std::fstream::out | std::fstream::app);
+		stg.clear();
+		if (filestr.fail())
+		{
+			std::cout << "Error" << std::endl;
+		}
+		filestr << seconds;
+		filestr << std::endl;
+		filestr.close();
+
 		// Retrieving the data from the compute execution
 		// The data from the Node storage buffer
 		NodeData* data = nullptr;
@@ -1056,8 +1081,8 @@ void Render::draw()
 		{
 			if (next < backfinalPaths.at(i).size())
 			{
-				float oop = nodes->at(backfinalPaths.at(i).at(next))->position.x - nodes->at(backfinalPaths.at(i).at(last))->position.x;	// Distance to the next node from the last is the amount to move
-				float oop2 = nodes->at(backfinalPaths.at(i).at(next))->position.y - nodes->at(backfinalPaths.at(i).at(last))->position.y;
+				float oop = matchingPos->at(backfinalPaths.at(i).at(next)).x - matchingPos->at(backfinalPaths.at(i).at(last)).x;	// Distance to the next node from the last is the amount to move
+				float oop2 = matchingPos->at(backfinalPaths.at(i).at(next)).y - matchingPos->at(backfinalPaths.at(i).at(last)).y;
 				cubes->at(cubes->size() - ((numOfAgents + 1) - i))->updatePos(oop, oop2);	// Last cubes added to the array are the agent cubes, so start at the end
 
 				// Update the memory
@@ -1361,6 +1386,11 @@ void Render::setStarts(std::vector<int> t_starts)
 {
 	starts.clear();
 	starts = t_starts;
+}
+
+void Render::setMatchingPositions(std::vector<glm::vec2>* t_pos)
+{
+	matchingPos = t_pos;
 }
 
 void Render::updateUniformBuffer(uint32_t currentImage)
