@@ -45,6 +45,12 @@ public:
 	std::vector<Cube*> m_AI;
 	
 	int timer = 0;
+	//VkDescriptorPool guiPool;
+	//VkRenderPass imGuiRenderPass;
+
+	//std::vector<VkCommandBuffer> guiCMDbuffers;
+	//std::vector<VkFramebuffer> guiFrameBuffers;
+	//VkCommandPool guiPools;
 
 	Cube* m_start1;
 	Cube* m_start2;
@@ -52,7 +58,16 @@ public:
 	Cube* m_goal;
 	void run() {
 		initWindow();                       // Setup GLFW window and settings for Vulkan
+			// Setup Dear ImGui context
+		IMGUI_CHECKVERSION();
+		ImGui::CreateContext();
+		ImGuiIO& io = ImGui::GetIO(); (void)io;
+		//io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+		//io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 
+		ImGui::StyleColorsDark();
+		// Setup Platform/Renderer bindings
+		ImGui_ImplGlfw_InitForVulkan(window, true);
 		float index;
 		float accum = 0;
 		int count = 0;
@@ -72,6 +87,9 @@ public:
 		setupCubeMap();
 		m_renderer.addVBOs(&m_gameCubes);
 		m_renderer.setupVulkan(window);
+
+		
+
 		mainLoop();                         // Loop
 
 		cleanup();                          // Clearing memory off of the heap
@@ -95,6 +113,8 @@ private:
 	{
 		while (!glfwWindowShouldClose(window)) {
 			glfwPollEvents();
+
+
 			if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS && timer > 1000)
 			{
 				timer = 0;
@@ -162,6 +182,8 @@ private:
 	
 			timer++;
 			m_renderer.draw();
+			
+			
 		}
 	}
 
@@ -206,7 +228,7 @@ private:
 				if (j == 0 || j == (gridSize-2) || i == 0 || i == (gridSize-2) || rdm % 10 == 1)
 				{
 					//Cube* cube = new Cube(j, i, 2.0f);
-					////cube->updateColor(glm::vec3(0.0f, 1.0f, 0.0f));
+					//cube->updateColor(glm::vec3(0.0f, 1.0f, 0.0f));
 					//m_gameCubes.push_back(cube);
 					node->passable = 0;
 				}
@@ -272,13 +294,13 @@ private:
 			}
 			starts.push_back(oop);
 			Cube* cub = new Cube(m_matchingPositions.at(oop).x, m_matchingPositions.at(oop).y, 2.0f);
-			cub->updateColor(glm::vec3(0.0f, 0.0f, 0.0f));
+			cub->updateColor(glm::vec3(1.0f, 0.0f, 0.0f));
 			m_gameCubes.push_back(cub);
 		}
 		m_renderer.setStarts(starts);
 
 		m_goal = new Cube(m_matchingPositions.at(goalID).x, m_matchingPositions.at(goalID).y, 2.0f);
-		m_goal->updateColor(glm::vec3(1.0f, 0.0f, 0.0f));
+		m_goal->updateColor(glm::vec3(0.0f, 0.0f, 1.0f));
 		m_gameCubes.push_back(m_goal);
 
 		m_renderer.setMatchingPositions(&m_matchingPositions);
@@ -292,6 +314,7 @@ int main()
 	HelloTriangleApplication app;
 
 	try {
+		IMGUI_CHECKVERSION();
 		app.run();
 	}
 	catch (const std::exception& e) {

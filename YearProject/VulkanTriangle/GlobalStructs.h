@@ -11,6 +11,10 @@
 #include <random>
 #include <iostream>
 #include <fstream>
+#include <imgui.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_vulkan.h>
+
 
 struct UniformBufferObject {
 	alignas(16)glm::mat4 model;

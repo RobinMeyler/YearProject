@@ -156,7 +156,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\Vendor\IMGUI\imgui.cpp" />
+    <ClCompile Include="..\Vendor\IMGUI\imgui_demo.cpp" />
+    <ClCompile Include="..\Vendor\IMGUI\imgui_draw.cpp" />
+    <ClCompile Include="..\Vendor\IMGUI\imgui_impl_glfw.cpp" />
+    <ClCompile Include="..\Vendor\IMGUI\imgui_impl_vulkan.cpp" />
+    <ClCompile Include="..\Vendor\IMGUI\imgui_tables.cpp" />
+    <ClCompile Include="..\Vendor\IMGUI\imgui_widgets.cpp" />
     <ClCompile Include="Cube.cpp" />
+    <ClCompile Include="GUI.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Quad.cpp" />
     <ClCompile Include="Render.cpp" />
@@ -167,8 +175,17 @@
     <None Include="shaders\shader.vert" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\Vendor\IMGUI\imconfig.h" />
+    <ClInclude Include="..\Vendor\IMGUI\imgui.h" />
+    <ClInclude Include="..\Vendor\IMGUI\imgui_impl_glfw.h" />
+    <ClInclude Include="..\Vendor\IMGUI\imgui_impl_vulkan.h" />
+    <ClInclude Include="..\Vendor\IMGUI\imgui_internal.h" />
+    <ClInclude Include="..\Vendor\IMGUI\imstb_rectpack.h" />
+    <ClInclude Include="..\Vendor\IMGUI\imstb_textedit.h" />
+    <ClInclude Include="..\Vendor\IMGUI\imstb_truetype.h" />
     <ClInclude Include="Cube.h" />
     <ClInclude Include="GlobalStructs.h" />
+    <ClInclude Include="GUI.h" />
     <ClInclude Include="Quad.h" />
     <ClInclude Include="Render.h" />
     <ClInclude Include="Vertex.h" />

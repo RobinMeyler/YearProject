@@ -112,13 +112,13 @@ public:
 	std::vector<Cube*> cubesNew;
 	std::vector<Node*>* nodes;
 	bool framebufferResized = false;
-
+	int overallImageCount = 1;
+	int minimumImageCount = 1;
 	bool doPathfinding = false;
 	bool update = false;
 	int speed = 100;
 	InstanceBuffer instanceBuffer;
 	void createInstanceBuffer();
-private:
 
 	GLFWwindow* window;                     // Main window
 	VkInstance instance;                    // Instance of Vulkan, needed for everything.
@@ -144,6 +144,7 @@ private:
 	std::vector<VkFence> imagesInFlight;
 	std::vector<VkFence> inFlightFences;
 	size_t currentFrame = 0;
+	uint32_t currentIndex = 0;
 	std::vector<VkBuffer> vertexBuffers;
 	std::vector<VkDeviceMemory> vertexBufferMemorys;
 	std::vector<VkBuffer> indexBuffers;
@@ -189,6 +190,15 @@ private:
 	std::vector<int> finalPath;
 	std::vector<int> finalPath2;
 	std::vector<int> finalPath3;
+
+	VkDescriptorPool guiPool;
+	VkRenderPass imGuiRenderPass;
+
+	std::vector<VkCommandBuffer> guiCMDbuffers;
+	std::vector<VkFramebuffer> guiFrameBuffers;
+	VkCommandPool guiPools;
+	void createCommandPool(VkCommandPool* commandPool, VkCommandPoolCreateFlags flags);
+	void createCommandBuffers(VkCommandBuffer* commandBuffer, uint32_t commandBufferCount, VkCommandPool& commandPool);
 };	
 
 
