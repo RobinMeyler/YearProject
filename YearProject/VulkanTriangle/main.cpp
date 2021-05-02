@@ -56,19 +56,19 @@ public:
 		float index;
 		float accum = 0;
 		int count = 0;
-		std::ifstream file("results500_200_5.txt");
-		// Read in names and scores from file
-		if (file.is_open())
-		{
-			while (file >> index)
-			{
-				accum += index;
-				count++;
-			}
-		}
-		file.close();
-		float average = accum / count;
-		std::cout << "Average: " << std::to_string(average) << std::endl;
+		//std::ifstream file("results500_200_5.txt");
+		//// Read in names and scores from file
+		//if (file.is_open())
+		//{
+		//	while (file >> index)
+		//	{
+		//		accum += index;
+		//		count++;
+		//	}
+		//}
+		//file.close();
+		//float average = accum / count;
+		//std::cout << "Average: " << std::to_string(average) << std::endl;
 		setupCubeMap();
 		m_renderer.addVBOs(&m_gameCubes);
 		m_renderer.setupVulkan(window);

@@ -991,17 +991,17 @@ void Render::draw()
 		// =======================================
 
 
-		std::ofstream filestr;
-		std::string stg = "results250_200_20.txt";
-		filestr.open(stg, std::fstream::in | std::fstream::out | std::fstream::app);
-		stg.clear();
-		if (filestr.fail())
-		{
-			std::cout << "Error" << std::endl;
-		}
-		filestr << seconds;
-		filestr << std::endl;
-		filestr.close();
+		//std::ofstream filestr;
+		//std::string stg = "results250_200_20.txt";
+		//filestr.open(stg, std::fstream::in | std::fstream::out | std::fstream::app);
+		//stg.clear();
+		//if (filestr.fail())
+		//{
+		//	std::cout << "Error" << std::endl;
+		//}
+		//filestr << seconds;
+		//filestr << std::endl;
+		//filestr.close();
 
 		// Retrieving the data from the compute execution
 		// The data from the Node storage buffer
