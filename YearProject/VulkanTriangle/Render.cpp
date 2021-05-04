@@ -1295,7 +1295,7 @@ void Render::draw()
 		ImGui::Text("Pathfind execution time: %.5f seconds", timeTaken);
 
 		ImGui::Text("Change the Pathfinding speed:");             
-		ImGui::SliderFloat("Pathfinding Speed", &speed, 0.0f, 20.0f);         
+		ImGui::SliderFloat("Pathfinding Speed", &speed, 0.0f, 100.0f);         
 		//ImGui::ColorEdit3("Clear color", (float*)&clear_color); // Edit 3 floats representing a color
 
 		ImGui::Text("Zoom:");      

@@ -213,6 +213,7 @@ private:
 		//}
 	
 	    Cube* cube = new Cube(0, 0, 2.0f);
+		//cube->updateColor(glm::vec3(0.0f, 0.0f, 0.0f));
 		m_gameCubes.push_back(cube);
 		// Top layer
 		int count = 0;
@@ -294,7 +295,7 @@ private:
 			}
 			starts.push_back(oop);
 			Cube* cub = new Cube(m_matchingPositions.at(oop).x, m_matchingPositions.at(oop).y, 2.0f);
-			cub->updateColor(glm::vec3(1.0f, 0.0f, 0.0f));
+			cub->updateColor(glm::vec3(0.0f, 0.0f, 0.0f));
 			m_gameCubes.push_back(cub);
 		}
 		m_renderer.setStarts(starts);
