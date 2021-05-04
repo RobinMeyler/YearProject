@@ -1,5 +1,10 @@
 #include "Render.h"
 
+float Render::speed{ 1 };
+VkClearValue Render::backgroundColor{ 0.5f, 0.5f, 0.5f, 1.0f };		// Clear color - grey
+float Render::zoom{ 400.0f };
+float Render::timeTaken{ 0.0f };
+bool Render::pathFind{ false };
 Render::Render()
 {
 }
@@ -993,7 +998,7 @@ void Render::createCommandBuffers()
 		renderPassInfo.renderArea.offset = { 0, 0 };
 		renderPassInfo.renderArea.extent = swapChainExtent;
 
-		VkClearValue clearColor = { 0.5f, 0.5f, 0.5f, 1.0f };		// Clear color - grey
+		VkClearValue clearColor = Render::backgroundColor;//{ 0.5f, 0.5f, 0.5f, 1.0f };		// Clear color - grey
 		renderPassInfo.clearValueCount = 1;
 		renderPassInfo.pClearValues = &clearColor;
 
@@ -1128,9 +1133,9 @@ void Render::draw()
 {
 	vkWaitForFences(device, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
 
-	if (doPathfinding == true)
+	if (pathFind == true && update == false)
 	{
-		doPathfinding = false;
+		pathFind = false;
 		update = true;
 
 		VkSubmitInfo submitInfo2 = {};
@@ -1149,7 +1154,7 @@ void Render::draw()
 		std::cout << "Time taken by GPU: "
 			<< duration.count() << " microseconds" << " = " << seconds << " seconds" << std::endl;
 		// =======================================
-
+		timeTaken = seconds;
 
 		//std::ofstream filestr;
 		//std::string stg = "results250_200_20.txt";
@@ -1210,7 +1215,7 @@ void Render::draw()
 			backfinalPaths.push_back(p);		// One path for each agent
 		}
 	}
-
+	pathFind = false;
 
 	// The Rendering
 	// Get the next image in the swapchain
@@ -1235,7 +1240,7 @@ void Render::draw()
 
 
 	// Updating the cubes after compute shader
-	if (wait > speed && update == true)
+	if (wait > 500 && update == true)
 	{
 		wait = 0;
 		for (int i = 0; i < numOfAgents; i++)
@@ -1253,7 +1258,7 @@ void Render::draw()
 		last = next;		// manages the index of the paths to use
 		next++;
 	}
-	wait++;
+	wait += speed;
 	
 
 	// Update the UBO
@@ -1263,33 +1268,44 @@ void Render::draw()
 
 	ImGui_ImplVulkan_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
+	ImGui::SetNextWindowSize(ImVec2(1000, 1000), ImGuiCond_FirstUseEver);
 	ImGui::NewFrame();
-	bool what = true;
-	ImGui::ShowDemoWindow(&what);
-	//ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-	//// 2. Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
-	//{
-	//	static float f = 0.0f;
-	//	static int counter = 0;
+	static bool what = true;
+	//ImGui::ShowDemoWindow(&what);
+	ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+	// 2. Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
+	{
+		static float f = 0.0f;
+		static int counter = 0;
 
-	//	ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
+		ImGui::Begin("GPU Accelerated A* Pathfinding");    
+		// e.g. Leave a fixed amount of width for labels (by passing a negative value), the rest goes to widgets.
+		ImGui::PushItemWidth(ImGui::GetFontSize() * -12);
 
-	//	ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
-	//	ImGui::Checkbox("Demo Window", &what);      // Edit bools storing our window open/close state
-	//	ImGui::Checkbox("Another Window", &what);
+		ImGui::Text("General Controls:");
+		ImGui::Text("Pathfinding: Start: Space, Reset: R");
+		ImGui::Text("Camera Movement: W,A,S,D");
+		ImGui::Text("Camrera Zoom: Q,E");
+		ImGui::Text("Camera Tilt: F,C");
 
-	//	ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-	//	ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
+		ImGui::Text("Pathfind:");            
+		ImGui::SameLine();
+		ImGui::Checkbox("", &pathFind);     
 
-	//	if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
-	//		counter++;
-	//	ImGui::SameLine();
-	//	ImGui::Text("counter = %d", counter);
+		ImGui::Text("Pathfind execution time: %.5f seconds", timeTaken);
 
-	//	ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-	//	ImGui::End();
-	//}
-	const VkClearValue clearColor = { 0.0f, 0.0f, 0.5f, 1.0f };
+		ImGui::Text("Change the Pathfinding speed:");             
+		ImGui::SliderFloat("Pathfinding Speed", &speed, 0.0f, 20.0f);         
+		//ImGui::ColorEdit3("Clear color", (float*)&clear_color); // Edit 3 floats representing a color
+
+		ImGui::Text("Zoom:");      
+		ImGui::SliderFloat("Zoom amount", &zoom, 10.0f, 2000.0f);            
+		ImGui::Text("FPS:");
+		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+		ImGui::End();
+	}
+
+	const VkClearValue clearColor = { 1.0f, 0.0f, 0.5f, 1.0f };
 	ImGui::Render();
 	{
 		vkResetCommandPool(device, guiPools, 0);
@@ -1624,7 +1640,8 @@ void Render::updateUniformBuffer(uint32_t currentImage)
 
 	UniformBufferObject ubo{};
 	ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-	ubo.view = glm::lookAt(eye, lookAT, glm::vec3(0.0f, 1.0f, 0.0f));
+	glm::vec3 v{ eye.x, eye.y, zoom };
+	ubo.view = glm::lookAt(v, lookAT, glm::vec3(0.0f, 1.0f, 0.0f));
 	ubo.proj = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 5000.0f);
 	ubo.proj[1][1] *= -1;
 

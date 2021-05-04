@@ -115,7 +115,7 @@ private:
 			glfwPollEvents();
 
 
-			if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS && timer > 1000)
+			if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS && timer > 1000 && m_renderer.update == false)
 			{
 				timer = 0;
 				m_renderer.doPathfinding = true;
@@ -314,7 +314,6 @@ int main()
 	HelloTriangleApplication app;
 
 	try {
-		IMGUI_CHECKVERSION();
 		app.run();
 	}
 	catch (const std::exception& e) {

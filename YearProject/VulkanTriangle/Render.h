@@ -52,6 +52,14 @@ const int MAX_FRAMES_IN_FLIGHT = 2;
 
 class Render {
 public:
+
+	static float speed;
+	static float zoom;
+	static bool pathFind;
+	static float timeTaken;
+	static VkClearValue backgroundColor;
+	VkClearValue lastValue;
+
 	Render();
 	void createVulkanInstance();
 	void creatVulkanSurface(GLFWwindow* t_window);
@@ -116,7 +124,7 @@ public:
 	int minimumImageCount = 1;
 	bool doPathfinding = false;
 	bool update = false;
-	int speed = 100;
+	
 	InstanceBuffer instanceBuffer;
 	void createInstanceBuffer();
 
@@ -186,7 +194,7 @@ public:
 	NodeData* dataR3;
 	int next = 1;
 	int last = 0;
-	int wait = 100;
+	int wait = 0;
 	std::vector<int> finalPath;
 	std::vector<int> finalPath2;
 	std::vector<int> finalPath3;
