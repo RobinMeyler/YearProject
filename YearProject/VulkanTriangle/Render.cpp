@@ -56,7 +56,6 @@ void Render::setupVulkan(GLFWwindow* t_window)
 	}
 
 
-
 	// Create Descriptor Pool
 	{
 		VkDescriptorPoolSize pool_sizes[] =
@@ -1283,9 +1282,7 @@ void Render::draw()
 		ImGui::PushItemWidth(ImGui::GetFontSize() * -12);
 
 		ImGui::Text("General Controls:");
-		ImGui::Text("Pathfinding: Start: Space, Reset: R");
 		ImGui::Text("Camera Movement: W,A,S,D");
-		ImGui::Text("Camrera Zoom: Q,E");
 		ImGui::Text("Camera Tilt: F,C");
 
 		ImGui::Text("Pathfind:");            
