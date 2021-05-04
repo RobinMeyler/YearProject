@@ -164,13 +164,12 @@
     <ClCompile Include="..\Vendor\IMGUI\imgui_tables.cpp" />
     <ClCompile Include="..\Vendor\IMGUI\imgui_widgets.cpp" />
     <ClCompile Include="Cube.cpp" />
-    <ClCompile Include="GUI.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Quad.cpp" />
     <ClCompile Include="Render.cpp" />
-    <ClCompile Include="Source.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="shaders\astar.comp" />
     <None Include="shaders\shader.frag" />
     <None Include="shaders\shader.vert" />
   </ItemGroup>
@@ -185,7 +184,6 @@
     <ClInclude Include="..\Vendor\IMGUI\imstb_truetype.h" />
     <ClInclude Include="Cube.h" />
     <ClInclude Include="GlobalStructs.h" />
-    <ClInclude Include="GUI.h" />
     <ClInclude Include="Quad.h" />
     <ClInclude Include="Render.h" />
     <ClInclude Include="Vertex.h" />

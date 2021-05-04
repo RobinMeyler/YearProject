@@ -1,8 +1,10 @@
 #pragma once
 
+// Author: Robin Meyler
+// Date: 2020 - 2021
+
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/glm.hpp>
-
 #include <vector>
 #include "Vertex.h"
 

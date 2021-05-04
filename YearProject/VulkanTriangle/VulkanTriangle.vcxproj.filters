@@ -16,6 +16,9 @@
     <Filter Include="Source Files\gui">
       <UniqueIdentifier>{bae13379-2f80-4540-a8f0-8be5b4d5cd3a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Shaders">
+      <UniqueIdentifier>{fb84a667-f792-4489-8807-0519d22e86af}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -28,12 +31,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Cube.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="GUI.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\Vendor\IMGUI\imgui.cpp">
@@ -59,11 +56,14 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="shaders\shader.vert">
-      <Filter>Source Files</Filter>
+    <None Include="shaders\astar.comp">
+      <Filter>Source Files\Shaders</Filter>
     </None>
     <None Include="shaders\shader.frag">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="shaders\shader.vert">
+      <Filter>Source Files\Shaders</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -80,9 +80,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="GlobalStructs.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="GUI.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\Vendor\IMGUI\imconfig.h">

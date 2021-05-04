@@ -1,5 +1,8 @@
 #pragma once
 
+// Author: Robin Meyler
+// Date: 2020 - 2021
+
 #include <vector>
 #include "Vertex.h"
 

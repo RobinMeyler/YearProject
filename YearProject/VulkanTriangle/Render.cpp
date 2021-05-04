@@ -1,10 +1,15 @@
 #include "Render.h"
 
 float Render::speed{ 1 };
-VkClearValue Render::backgroundColor{ 0.5f, 0.5f, 0.5f, 1.0f };		// Clear color - grey
 float Render::zoom{ 400.0f };
 float Render::timeTaken{ 0.0f };
 bool Render::pathFind{ false };
+bool Render::canReset{ false };
+bool Render::up{ false };
+bool Render::left{ false };
+bool Render::right{ false };
+bool Render::down{ false };
+
 Render::Render()
 {
 }
@@ -12,6 +17,7 @@ Render::Render()
 void Render::setupVulkan(GLFWwindow* t_window)
 {
 	// Function called my the main to setup all the initalization functions for the program
+	// Order is important
 	createVulkanInstance();	
 	creatVulkanSurface(t_window);	
 	chooseGPUDevice();	
@@ -27,10 +33,7 @@ void Render::setupVulkan(GLFWwindow* t_window)
 	createCommandPool();
 	createNodeBuffer(buffersNodes, 1, numOfAgents, 1);		
 	createPathsBuffer(buffersPaths, 1, numOfAgents, 0);		
-
 	createInstanceBuffer();
-	//createVertexBuffer(*cubes->at(0), vertexBuffers.at(0), vertexBufferMemorys.at(0));
-
 	for (int i = 0; i < cubes->size(); i++)
 	{
 		createVertexBuffer(*cubes->at(i), vertexBuffers.at(i), vertexBufferMemorys.at(i));
@@ -55,8 +58,8 @@ void Render::setupVulkan(GLFWwindow* t_window)
 		nexts.at(i) = 1;
 	}
 
-
-	// Create Descriptor Pool
+	// Setupp GUI information
+	// Descriptor Pool
 	{
 		VkDescriptorPoolSize pool_sizes[] =
 		{
@@ -82,6 +85,7 @@ void Render::setupVulkan(GLFWwindow* t_window)
 
 	}
 
+	// Render Pass
 	{
 		VkAttachmentDescription attachment = {};
 		attachment.format = VK_FORMAT_B8G8R8A8_SRGB;
@@ -123,12 +127,8 @@ void Render::setupVulkan(GLFWwindow* t_window)
 		}
 	}
 
-
-
-
+	// IMGUI init
 	QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
-
-
 	ImGui_ImplVulkan_InitInfo init_info = {};
 	init_info.Instance = instance;
 	init_info.PhysicalDevice = physicalDevice;
@@ -140,10 +140,9 @@ void Render::setupVulkan(GLFWwindow* t_window)
 	init_info.Allocator = nullptr;
 	init_info.MinImageCount = swapChainImages.size();
 	init_info.ImageCount = swapChainImages.size();
-	//init_info.CheckVkResultFn = check_vk_result;
 	ImGui_ImplVulkan_Init(&init_info, imGuiRenderPass);
 
-
+	// Create command pool and buffers
 	createCommandPool(&guiPools, VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
 	guiCMDbuffers.resize(swapChainImageViews.size());
 	createCommandBuffers(guiCMDbuffers.data(), static_cast<uint32_t>(guiCMDbuffers.size()), guiPools);
@@ -152,8 +151,6 @@ void Render::setupVulkan(GLFWwindow* t_window)
 		VkCommandBufferBeginInfo beginInfo{};
 		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 		beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;		// Only 1 call to this command
-
-
 		VkCommandBufferBeginInfo begin_info = {};
 		begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 		begin_info.flags |= VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
@@ -172,6 +169,7 @@ void Render::setupVulkan(GLFWwindow* t_window)
 		vkDeviceWaitIdle(device);
 		ImGui_ImplVulkan_DestroyFontUploadObjects();
 	}
+	// Create framebuffers
 	{
 		VkImageView attachment[1];
 		VkFramebufferCreateInfo info = {};
@@ -188,7 +186,6 @@ void Render::setupVulkan(GLFWwindow* t_window)
 			attachment[0] = swapChainImageViews.at(i);
 			vkCreateFramebuffer(device, &info, nullptr, &guiFrameBuffers.at(i));
 		}
-
 	}
 }
 
@@ -515,15 +512,12 @@ void Render::createVulkanGraphicsPipeline()
 
 	VkPipelineVertexInputStateCreateInfo vertexInputInfo = {};
 	vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-	//auto bindingDescription = Vertex3::getBindingDescription();								// Binding
-	//auto attributeDescriptions = Vertex3::getAttributeDescriptions();						// Layout positions
 	std::vector<VkVertexInputBindingDescription> bindingDescriptions;
 	std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
 
-
 	VkVertexInputBindingDescription vInputBindDescription{};
 	vInputBindDescription.binding = 0;
-	vInputBindDescription.stride = sizeof(Vertex3);
+	vInputBindDescription.stride = sizeof(Vertex3D);
 	vInputBindDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 	VkVertexInputBindingDescription vInputBindDescription2{};
 	vInputBindDescription2.binding = 1;
@@ -549,7 +543,7 @@ void Render::createVulkanGraphicsPipeline()
 	vInputAttribDescription2.format = VK_FORMAT_R32G32B32_SFLOAT;
 	vInputAttribDescription2.offset = sizeof(float) * 3;
 
-	// inst
+	// instanced
 	VkVertexInputAttributeDescription vInputAttribDescription3{};
 	vInputAttribDescription3.location = 2;
 	vInputAttribDescription3.binding = 1;
@@ -702,7 +696,6 @@ void Render::createCommandPool()
 
 void Render::creatBufferObjects(int t_count)
 {
-
 	// Movable cubes
 	for (int j = 0; j < t_count; j++)
 	{
@@ -716,9 +709,8 @@ void Render::creatBufferObjects(int t_count)
 	indexBufferMemorys.push_back(indexMem);
 }
 
-void Render::addVBOs(std::vector<Cube*>* t_cubesMoveable/*, std::vector<Cube*>* t_cubesUnmoved*/)
+void Render::addVBOs(std::vector<Cube*>* t_cubesMoveable)
 {
-	//cubesMoveable = t_cubesMoveable;
 	cubes = t_cubesMoveable;
 }
 
@@ -757,43 +749,24 @@ void Render::updateBufferMemory(Cube& t_cube, VkBuffer& t_vertexbuffer, VkDevice
 
 void Render::resetAgents()
 {
-
-	//std::random_device rd;
-	//std::mt19937 gen(rd());
-	//std::uniform_real_distribution<> dis(0.0, gridSizeTotal - 1);
-
-	//std::vector<int> starts;
-	//for (int i = 0; i < numOfAgents; i++)
-	//{
-	//	long int oop = dis(gen);
-	//	while (nodes.at(oop)->passable == 0)
-	//	{
-	//		oop = dis(gen);
-	//	}
-	//	starts.push_back(oop);
-	//	Cube* cub = new Cube(m_matchingPositions.at(oop).x, m_matchingPositions.at(oop).y, 2.0f);
-	//	cub->updateColor(glm::vec3(0.0f, 0.0f, 0.0f));
-	//	m_gameCubes.push_back(cub);
-	//}
-	//m_renderer.setStarts(starts);
-
-	// Set new cubes positions
-	// Update cubes to position
-	// Reset node data
-	// update storage buffers
-
-
-	// reseting the Cubes to their starting places
-	for (int i = 0; i < numOfAgents; i++)
+	if (canReset == true && readyForReset == true)
 	{
-		float oop = matchingPos->at(backfinalPaths.at(i).at(0)).x - matchingPos->at(backfinalPaths.at(i).at(backfinalPaths.at(i).size() -1)).x;
-		float oop2 = matchingPos->at(backfinalPaths.at(i).at(0)).y - matchingPos->at(backfinalPaths.at(i).at(backfinalPaths.at(i).size() - 1)).y;
-		cubes->at(cubes->size() - ((numOfAgents + 1) - i))->updatePos(oop, oop2);
-		updateBufferMemory(*cubes->at(cubes->size() - ((numOfAgents + 1) - i)), vertexBuffers.at(cubes->size() - ((numOfAgents + 1) - i)), vertexBufferMemorys.at(cubes->size() - ((numOfAgents + 1) - i)));
-		
+		readyForReset = false;
+		pathFind = false;
+		update = false;
+		// reseting the Cubes to their starting places
+		for (int i = 0; i < numOfAgents; i++)
+		{
+			float oop = matchingPos->at(backfinalPaths.at(i).at(0)).x - matchingPos->at(backfinalPaths.at(i).at(backfinalPaths.at(i).size() - 1)).x;
+			float oop2 = matchingPos->at(backfinalPaths.at(i).at(0)).y - matchingPos->at(backfinalPaths.at(i).at(backfinalPaths.at(i).size() - 1)).y;
+			cubes->at(cubes->size() - ((numOfAgents + 1) - i))->updatePos(oop, oop2);
+			updateBufferMemory(*cubes->at(cubes->size() - ((numOfAgents + 1) - i)), vertexBuffers.at(cubes->size() - ((numOfAgents + 1) - i)), vertexBufferMemorys.at(cubes->size() - ((numOfAgents + 1) - i)));
+
+		}
+		next = 1;
+		last = 0;
+		canReset = false;
 	}
-	next = 1;
-	last = 0;
 }
 
 void Render::updateCameraPosition(glm::vec3 t_changeInCameraPosition, int t_specify)
@@ -817,7 +790,7 @@ void Render::updateCameraPosition(glm::vec3 t_changeInCameraPosition, int t_spec
 void Render::createInstanceBuffer()
 {
 	std::vector<InstanceData> instanceDatas;
-
+	// Update the position of each static cube so the instance buffer knows where to place each invocation
 	for (auto i = 0; i < nodes->size(); i++)
 	{
 		if (nodes->at(i)->passable == 0)
@@ -830,6 +803,8 @@ void Render::createInstanceBuffer()
 	}
 	instanceBuffer.size = instanceDatas.size() * sizeof(InstanceData);
 
+
+	// Create memory map it then copy it to eh GPU
 	VkBuffer stagingBuffer;
 	VkDeviceMemory stagingBufferMemory;
 	createBuffer(instanceBuffer.size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
@@ -997,33 +972,28 @@ void Render::createCommandBuffers()
 		renderPassInfo.renderArea.offset = { 0, 0 };
 		renderPassInfo.renderArea.extent = swapChainExtent;
 
-		VkClearValue clearColor = Render::backgroundColor;//{ 0.5f, 0.5f, 0.5f, 1.0f };		// Clear color - grey
+		VkClearValue clearColor = { 0.5f, 0.5f, 0.5f, 1.0f };		// Clear color - grey
 		renderPassInfo.clearValueCount = 1;
 		renderPassInfo.pClearValues = &clearColor;
 
 		vkCmdBeginRenderPass(commandBuffers[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);		// start render pass
 
 		vkCmdBindPipeline(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);	// Bind the graphics pipeline
-		
-
-
+	
 		VkDeviceSize offsetz[1] = { 0 };
-			// Instanced rocks
+		// Instanced 
 		vkCmdBindDescriptorSets(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[i], 0, NULL);
-		// Binding point 0 : Mesh vertex buffer
+		// Binding point 0 : vertex buffer
 		vkCmdBindVertexBuffers(commandBuffers[i], 0, 1, &vertexBuffers.at(0), offsetz);
 		// Binding point 1 : Instance data buffer
 		vkCmdBindVertexBuffers(commandBuffers[i], 1, 1, &instanceBuffer.buffer, offsetz);
 		// Bind index buffer
 		vkCmdBindIndexBuffer(commandBuffers[i], indexBuffers.at(0), 0, VK_INDEX_TYPE_UINT32);
-
 		// Render instances
 		vkCmdDrawIndexed(commandBuffers[i], static_cast<uint32_t>((*cubes)[0]->indices.size()), (*nodes).size(), 0, 0, 0);
 
 		vkCmdBindPipeline(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipelineNONinstanced);	// Bind the graphics pipeline
-
-
-		//// for every cube
+		// For every moveable cube
 		//int whatsLeft = cubes->size();
 		for (int j = 0; j < cubes->size(); j++)
 		{
@@ -1088,7 +1058,6 @@ void Render::createCommandBuffers()
 	vkUnmapMemory(device, memoryNode);
 	// ============================================================
 
-
 	// Paths SSBO mapping =========================================
 	// mapping data to the storage buffer
 	Path* dataPaths = nullptr;
@@ -1134,7 +1103,6 @@ void Render::draw()
 
 	if (pathFind == true && update == false)
 	{
-		pathFind = false;
 		update = true;
 
 		VkSubmitInfo submitInfo2 = {};
@@ -1144,8 +1112,8 @@ void Render::draw()
 
 		// Submiting of the Compute shader after input, timed with Chrono  ======
 		auto start = std::chrono::high_resolution_clock::now();
-		vkQueueSubmit(graphicsQueue, 1, &submitInfo2, VK_NULL_HANDLE);
-		vkQueueWaitIdle(graphicsQueue);
+		vkQueueSubmit(graphicsQueue, 1, &submitInfo2, VK_NULL_HANDLE);			// Main call to the compute shader
+		vkQueueWaitIdle(graphicsQueue);											// Wait till finished
 		auto stop = std::chrono::high_resolution_clock::now();
 		auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
 		float seconds = duration.count();
@@ -1154,18 +1122,6 @@ void Render::draw()
 			<< duration.count() << " microseconds" << " = " << seconds << " seconds" << std::endl;
 		// =======================================
 		timeTaken = seconds;
-
-		//std::ofstream filestr;
-		//std::string stg = "results250_200_20.txt";
-		//filestr.open(stg, std::fstream::in | std::fstream::out | std::fstream::app);
-		//stg.clear();
-		//if (filestr.fail())
-		//{
-		//	std::cout << "Error" << std::endl;
-		//}
-		//filestr << seconds;
-		//filestr << std::endl;
-		//filestr.close();
 
 		// Retrieving the data from the compute execution
 		// The data from the Node storage buffer
@@ -1214,7 +1170,6 @@ void Render::draw()
 			backfinalPaths.push_back(p);		// One path for each agent
 		}
 	}
-	pathFind = false;
 
 	// The Rendering
 	// Get the next image in the swapchain
@@ -1239,6 +1194,7 @@ void Render::draw()
 
 
 	// Updating the cubes after compute shader
+	bool allMadeIt = true;
 	if (wait > 500 && update == true)
 	{
 		wait = 0;
@@ -1246,6 +1202,7 @@ void Render::draw()
 		{
 			if (next < backfinalPaths.at(i).size())
 			{
+				allMadeIt = false;
 				float oop = matchingPos->at(backfinalPaths.at(i).at(next)).x - matchingPos->at(backfinalPaths.at(i).at(last)).x;	// Distance to the next node from the last is the amount to move
 				float oop2 = matchingPos->at(backfinalPaths.at(i).at(next)).y - matchingPos->at(backfinalPaths.at(i).at(last)).y;
 				cubes->at(cubes->size() - ((numOfAgents + 1) - i))->updatePos(oop, oop2);	// Last cubes added to the array are the agent cubes, so start at the end
@@ -1256,80 +1213,65 @@ void Render::draw()
 		}
 		last = next;		// manages the index of the paths to use
 		next++;
+		if (allMadeIt == true)
+			readyForReset = true;		// All finished
 	}
 	wait += speed;
-	
+	resetAgents();
 
 	// Update the UBO
 	updateUniformBuffer(imageIndex);
 
 
-
+	// Update the IMGUI
 	ImGui_ImplVulkan_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
-	ImGui::SetNextWindowSize(ImVec2(1000, 1000), ImGuiCond_FirstUseEver);
+	//ImGui::SetNextWindowSize(ImVec2(1000, 1000), ImGuiCond_FirstUseEver);
 	ImGui::NewFrame();
-	static bool what = true;
-	//ImGui::ShowDemoWindow(&what);
-	ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-	// 2. Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
-	{
-		static float f = 0.0f;
-		static int counter = 0;
+	static float f = 0.0f;
+	static int counter = 0;
 
-		ImGui::Begin("GPU Accelerated A* Pathfinding");    
-		// e.g. Leave a fixed amount of width for labels (by passing a negative value), the rest goes to widgets.
-		ImGui::PushItemWidth(ImGui::GetFontSize() * -12);
-
-		ImGui::Text("General Controls:");
-		ImGui::Text("Camera Movement: W,A,S,D");
-		ImGui::Text("Camera Tilt: F,C");
-
-		ImGui::Text("Pathfind:");            
-		ImGui::SameLine();
-		ImGui::Checkbox("", &pathFind);     
-
-		ImGui::Text("Pathfind execution time: %.5f seconds", timeTaken);
-
-		ImGui::Text("Change the Pathfinding speed:");             
-		ImGui::SliderFloat("Pathfinding Speed", &speed, 0.0f, 100.0f);         
-		//ImGui::ColorEdit3("Clear color", (float*)&clear_color); // Edit 3 floats representing a color
-
-		ImGui::Text("Zoom:");      
-		ImGui::SliderFloat("Zoom amount", &zoom, 10.0f, 2000.0f);            
-		ImGui::Text("FPS:");
-		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-		ImGui::End();
-	}
+	ImGui::Begin("GPU Accelerated A* Pathfinding");    
+	ImGui::PushItemWidth(ImGui::GetFontSize() * -12);
+	ImGui::Text("General Controls:");
+	ImGui::Text("Camera Movement: W,A,S,D");
+	ImGui::Text("Camera Tilt: F,C");
+	ImGui::Checkbox("Pathfind", &pathFind);     ImGui::SameLine(); 		ImGui::Checkbox("Reset", &canReset);
+	ImGui::Text("Pathfind execution time: %.5f seconds", timeTaken);
+	ImGui::Text("Change the Pathfinding speed:");             
+	ImGui::SliderFloat("Pathfinding Speed", &speed, 0.0f, 100.0f);         
+	ImGui::Text("Zoom:");      
+	ImGui::SliderFloat("Zoom amount", &zoom, 10.0f, 2000.0f);            
+	ImGui::Text("FPS:");
+	ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+	ImGui::End();
+	ImGui::Render();
 
 	const VkClearValue clearColor = { 1.0f, 0.0f, 0.5f, 1.0f };
-	ImGui::Render();
-	{
-		vkResetCommandPool(device, guiPools, 0);
-		VkCommandBufferBeginInfo info2 = {};
-		info2.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-		info2.flags |= VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-		vkBeginCommandBuffer(guiCMDbuffers[imageIndex], &info2);
 
-		VkRenderPassBeginInfo info = {};
-		info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-		info.renderPass = imGuiRenderPass;
-		info.framebuffer = guiFrameBuffers[imageIndex];
-		info.renderArea.extent.width = swapChainExtent.width;
-		info.renderArea.extent.height = swapChainExtent.height;
-		info.clearValueCount = 1;
-		info.pClearValues = &clearColor;
-		vkCmdBeginRenderPass(guiCMDbuffers[imageIndex], &info, VK_SUBPASS_CONTENTS_INLINE);
+	// Create a new render pass with update info
+	vkResetCommandPool(device, guiPools, 0);
+	VkCommandBufferBeginInfo info2 = {};
+	info2.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+	info2.flags |= VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+	vkBeginCommandBuffer(guiCMDbuffers[imageIndex], &info2);
 
-		ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), guiCMDbuffers[imageIndex]);
+	VkRenderPassBeginInfo info = {};
+	info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+	info.renderPass = imGuiRenderPass;
+	info.framebuffer = guiFrameBuffers[imageIndex];
+	info.renderArea.extent.width = swapChainExtent.width;
+	info.renderArea.extent.height = swapChainExtent.height;
+	info.clearValueCount = 1;
+	info.pClearValues = &clearColor;
+	vkCmdBeginRenderPass(guiCMDbuffers[imageIndex], &info, VK_SUBPASS_CONTENTS_INLINE);
 
-		// Submit command buffer
-		vkCmdEndRenderPass(guiCMDbuffers[imageIndex]);
-		vkEndCommandBuffer(guiCMDbuffers[imageIndex]);
-	}
+	ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), guiCMDbuffers[imageIndex]);
 
-
-
+	// Submit command buffer
+	vkCmdEndRenderPass(guiCMDbuffers[imageIndex]);
+	vkEndCommandBuffer(guiCMDbuffers[imageIndex]);
+	
 	VkSubmitInfo submitInfo = {};
 	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
